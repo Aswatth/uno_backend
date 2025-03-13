@@ -2,6 +2,7 @@ package com.example.uno.services;
 
 import com.example.uno.models.ConnectionData;
 import com.example.uno.models.Player;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
 
@@ -31,4 +32,8 @@ public class PlayerService implements IPlayerService {
 //    System.out.printf("DISCONNECTED - %s\n", removedPlayer);
   }
 
+  @Override
+  public List<String> getPlayerSessionIdList() {
+    return playerMap.keySet().stream().toList();
+  }
 }

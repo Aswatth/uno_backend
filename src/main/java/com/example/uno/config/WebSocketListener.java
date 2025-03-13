@@ -1,6 +1,7 @@
 package com.example.uno.config;
 
 import com.example.uno.models.ConnectionData;
+import com.example.uno.services.GameService;
 import com.example.uno.services.PlayerService;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Component
 public class WebSocketListener {
 
+  @Autowired
+  GameService gameService;
   @Autowired
   PlayerService playerService;
 
@@ -37,7 +40,7 @@ public class WebSocketListener {
   public void handleClientDisconnectEvent(SessionDisconnectEvent sessionDisconnectEvent) {
     StompHeaderAccessor stompHeaderAccessor = StompHeaderAccessor.wrap(
         sessionDisconnectEvent.getMessage());
-
+    gameService.leaveGame(stompHeaderAccessor.getSessionId());
     playerService.removePlayer(stompHeaderAccessor.getSessionId());
 
   }

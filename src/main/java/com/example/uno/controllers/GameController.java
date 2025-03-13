@@ -1,8 +1,11 @@
 package com.example.uno.controllers;
 
+import com.example.uno.models.Game;
 import com.example.uno.services.IGameService;
+import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -29,9 +32,16 @@ public class GameController {
     return gameService.createGame(gameName, minPlayers);
   }
 
+  @MessageMapping("/browse-games")
+  @SendToUser("/queue/browse-games")
+  public List<Map<String, Object>> browseGames() {
+    return gameService.browseGames();
+  }
+
   @MessageMapping("/join-game/{gameId}")
   @SendTo("/topic/join-game/{gameId}")
-  public void joinGame(@Header("simpSessionId")String sessionId, @DestinationVariable String gameId) {
+  public void joinGame(@Header("simpSessionId") String sessionId,
+      @DestinationVariable String gameId) {
     gameService.joinGame(gameId, sessionId);
   }
 

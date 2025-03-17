@@ -1,11 +1,10 @@
 package com.example.uno.services;
 
 import com.example.uno.models.Game;
-import java.util.ArrayList;
+import com.example.uno.models.Player;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,16 +36,16 @@ public class GameService implements IGameService {
   }
 
   private void broadcast() {
-    for (String player : playerService.getPlayerSessionIdList()) {
+    for (String playerSessionId : playerService.getPlayerSessionIdList()) {
 
 //      System.out.println("BROADCASTING TO PLAYER ID: " + player);
       SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(
           SimpMessageType.MESSAGE);
-      headerAccessor.setSessionId(player);
+      headerAccessor.setSessionId(playerSessionId);
       headerAccessor.setLeaveMutable(true);
 
-      simpMessagingTemplate.convertAndSendToUser(player, "/queue/browse-games",
-          gameList.values().stream().toList(), headerAccessor.getMessageHeaders());
+      simpMessagingTemplate.convertAndSendToUser(playerSessionId, "/queue/browse-games",
+          browseGames(), headerAccessor.getMessageHeaders());
     }
 
   }
@@ -54,9 +53,9 @@ public class GameService implements IGameService {
   @Override
   public String createGame(String gameName, int minPlayers) {
 
-    Game game = new Game(minPlayers, gameName);
-
     String gameId = UUID.randomUUID().toString();
+
+    Game game = new Game(gameId, minPlayers, gameName);
 
     gameMap.put(gameId, game);
 
@@ -73,18 +72,28 @@ public class GameService implements IGameService {
   public void joinGame(String gameId, String playerSessionId) {
     Game game = gameMap.get(gameId);
 
-    Map<String, Object> map = new HashMap<>();
+    Player player = playerService.getPlayer(playerSessionId);
 
-    game.addPlayer(playerSessionId);
-    gameMap.put(gameId, game);
+    game.addPlayer(player);
     playerGameMap.put(playerSessionId, gameId);
+    gameMap.put(gameId, game);
 
-    map.put("gameId", gameId);
-    map.put("gameName", game.getGameName());
-    map.put("currentPlayers", game.getCurrentPlayers().size());
+    gameList.put(gameId, game.toMap());
 
-    gameList.put(gameId, map);
+    // Assigning the first player as host or a member otherwise
+    SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(
+        SimpMessageType.MESSAGE);
+    headerAccessor.setSessionId(playerSessionId);
+    headerAccessor.setLeaveMutable(true);
 
+    simpMessagingTemplate.convertAndSendToUser(playerSessionId, "/queue/host",
+        game.isHost(playerSessionId), headerAccessor.getMessageHeaders());
+
+    // Notify party members
+    simpMessagingTemplate.convertAndSend("/topic/join-game/" + gameId,
+        gameList.get(gameId));
+
+    // Broadcast updated info to other players browsing games.
     broadcast();
   }
 
@@ -93,7 +102,8 @@ public class GameService implements IGameService {
     String gameId = playerGameMap.get(playerSessionId);
     if (gameId != null) {
       Game game = gameMap.get(gameId);
-      game.removePlayer(playerSessionId);
+      Player player = playerService.getPlayer(playerSessionId);
+      game.removePlayer(player);
 
       gameMap.put(gameId, game);
       playerGameMap.remove(playerSessionId);
@@ -101,14 +111,24 @@ public class GameService implements IGameService {
       if (game.getCurrentPlayers().isEmpty()) {
         gameMap.remove(gameId);
         gameList.remove(gameId);
-//        return;
       } else {
-        Map<String, Object> map = new HashMap<>();
-        map.put("gameId", gameId);
-        map.put("gameName", game.getGameName());
-        map.put("currentPlayers", game.getCurrentPlayers().size());
-        gameList.put(gameId, map);
+        // Assign next player as host
+        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(
+            SimpMessageType.MESSAGE);
+        headerAccessor.setSessionId(game.getHost().getSessionId());
+        headerAccessor.setLeaveMutable(true);
+
+        simpMessagingTemplate.convertAndSendToUser(game.getHost().getSessionId(), "/queue/host",
+            true, headerAccessor.getMessageHeaders());
+
+        gameList.put(gameId, game.toMap());
+
+        // Notify party members
+        simpMessagingTemplate.convertAndSend("/topic/join-game/" + gameId,
+            gameList.get(gameId));
       }
+
+      // Broadcast updated info to other players browsing games.
       broadcast();
     }
   }

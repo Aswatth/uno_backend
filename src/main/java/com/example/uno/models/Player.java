@@ -4,9 +4,9 @@ package com.example.uno.models;
  * A model defining player attributes.
  */
 public class Player {
-  String sessionId;
-  String name;
-  ConnectionData connectionData;
+  private String sessionId;
+  private String name;
+  private ConnectionData connectionData;
 
   public Player(String sessionId, String name, ConnectionData connectionData) {
     this.sessionId = sessionId;

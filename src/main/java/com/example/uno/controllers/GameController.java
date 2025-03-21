@@ -1,18 +1,15 @@
 package com.example.uno.controllers;
 
-import com.example.uno.models.Game;
 import com.example.uno.services.IGameService;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * A controller class to handle game requests.
@@ -25,7 +22,7 @@ public class GameController {
 
   @MessageMapping("/game")
   @SendToUser("/queue/game")
-  public String createGame(@RequestBody Map<String, Object> request) {
+  public String createGame(Map<String, Object> request) {
     String gameName = (String) request.get("gameName");
     int minPlayers = (int) request.get("minPlayers");
 
@@ -44,6 +41,4 @@ public class GameController {
       @DestinationVariable String gameId) {
     gameService.joinGame(gameId, sessionId);
   }
-
-
 }

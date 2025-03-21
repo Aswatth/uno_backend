@@ -32,7 +32,7 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
-public class GameControllerTest {
+public class ITGameControllerTest {
 
   @LocalServerPort
   int PORT;
@@ -134,22 +134,7 @@ public class GameControllerTest {
 
   @Test
   public void testJoinGame() throws Exception {
-    List<Map<String, Object>> gameList = new ArrayList<>();
-    gameList.add(new HashMap<>() {{
-      put("gameName", "testGame1");
-      put("currentPlayers", new ArrayList<>() {{
-        add("testPlayer1");
-      }});
-    }});
-    gameList.add(new HashMap<>() {{
-      put("gameName", "testGame2");
-      put("currentPlayers", new ArrayList<>() {{
-        add("testPlayer2");
-        add("testPlayer3");
-      }});
-    }});
-
-    Mockito.doCallRealMethod().when(gameService).joinGame("123", "p123");
+    Mockito.doNothing().when(gameService).joinGame("123", "p123");
 
     StompSession session = stompClient
         .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(PORT)),

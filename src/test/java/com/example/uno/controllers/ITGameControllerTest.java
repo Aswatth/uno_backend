@@ -16,13 +16,18 @@ import java.util.concurrent.LinkedBlockingDeque;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
@@ -134,20 +139,40 @@ public class ITGameControllerTest {
 
   @Test
   public void testJoinGame() throws Exception {
-    Mockito.doNothing().when(gameService).joinGame("123", "p123");
+    String gameId = "123";
 
     StompSession session = stompClient
         .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(PORT)),
             new StompSessionHandlerAdapter() {
             })
         .get(1, SECONDS);
+
+    Mockito.doNothing().when(gameService).joinGame(Mockito.eq(gameId), Mockito.anyString());
+
     session.subscribe("/topic/join-game/123", new DefaultStompFrameHandler());
 
     session.send("/app/join-game/123", new ObjectMapper().writeValueAsBytes(""));
 
-    await().atMost(1, SECONDS).untilAsserted(() ->
-        assertThat(blockingQueue.poll()).isNull()
-    );
+    Mockito.verify(gameService, Mockito.timeout(1000))
+        .joinGame(Mockito.eq(gameId), Mockito.anyString());
+  }
 
+  @Test
+  public void testStartGame() throws Exception {
+    String gameId = "123";
+
+    Mockito.doNothing().when(gameService).startGame(Mockito.eq(gameId));
+
+    StompSession session = stompClient
+        .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(PORT)),
+            new StompSessionHandlerAdapter() {
+            })
+        .get(1, SECONDS);
+
+    session.subscribe("/user/queue/game/" + gameId, new DefaultStompFrameHandler());
+
+    session.send("/app/game/" + gameId, new ObjectMapper().writeValueAsBytes(""));
+
+    Mockito.verify(gameService, Mockito.timeout(1000)).startGame(Mockito.eq(gameId));
   }
 }

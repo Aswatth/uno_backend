@@ -11,8 +11,11 @@ public interface IGameService {
 
   String createGame(String gameName, int minPlayers);
 
-  List<Map<String,Object>> browseGames();
+  List<Map<String, Object>> browseGames();
 
   void joinGame(String gameId, String playerSessionId);
+
   void leaveGame(String playerSessionId);
+
+  void startGame(String gameId);
 }

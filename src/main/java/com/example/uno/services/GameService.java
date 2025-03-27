@@ -1,10 +1,14 @@
 package com.example.uno.services;
 
+import com.example.uno.models.Card;
 import com.example.uno.models.Game;
+import com.example.uno.models.GameStatus;
 import com.example.uno.models.Player;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,5 +135,50 @@ public class GameService implements IGameService {
       // Broadcast updated info to other players browsing games.
       broadcast();
     }
+  }
+
+  @Override
+  public void startGame(String gameId) {
+    Game game = gameMap.get(gameId);
+
+    Map<Player, List<Card>> playerCardList = game.dealCards();
+    List<Player> playerList = game.getCurrentPlayers();
+
+    for (int i = 0; i < playerList.size(); ++i) {
+      Map<String, Object> response = new HashMap<>();
+      response.put("isMyTurn",
+          Objects.equals(game.getCurrentPlayer().getSessionId(),
+              playerList.get(i).getSessionId()));
+      response.put("cards", playerCardList.get(playerList.get(i)));
+      response.put("isWinner", false);
+
+      List<Map<String, Object>> otherPlayerDataList = new ArrayList<>();
+
+      for (int j = 0; j < playerList.size(); ++j) {
+        if (i == j) {
+          continue;
+        }
+        Map<String, Object> otherPlayerData = new HashMap<>();
+        otherPlayerData.put("name", playerList.get(j).getName());
+        otherPlayerData.put("isMyTurn", Objects.equals(game.getCurrentPlayer().getSessionId(),
+            playerList.get(j).getSessionId()));
+        otherPlayerData.put("cardCount", playerCardList.get(playerList.get(j)).size());
+        response.put("isWinner", false);
+
+        otherPlayerDataList.add(otherPlayerData);
+      }
+
+      response.put("otherPlayersData", otherPlayerDataList);
+
+      SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(
+          SimpMessageType.MESSAGE);
+      headerAccessor.setSessionId(playerList.get(i).getSessionId());
+      headerAccessor.setLeaveMutable(true);
+
+      simpMessagingTemplate.convertAndSendToUser(playerList.get(i).getSessionId(),
+          "/queue/game/" + gameId,
+          response, headerAccessor.getMessageHeaders());
+    }
+    game.setGameStatus(GameStatus.IN_PROGRESS);
   }
 }

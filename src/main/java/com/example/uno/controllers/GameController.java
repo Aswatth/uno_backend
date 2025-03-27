@@ -39,6 +39,13 @@ public class GameController {
   @SendTo("/topic/join-game/{gameId}")
   public void joinGame(@Header("simpSessionId") String sessionId,
       @DestinationVariable String gameId) {
+    System.out.println("SESSION ID : " + sessionId);
     gameService.joinGame(gameId, sessionId);
+  }
+
+  @MessageMapping("/game/{gameId}")
+  @SendToUser("/queue/{gameId}")
+  public void startGame(@DestinationVariable String gameId) {
+    gameService.startGame(gameId);
   }
 }

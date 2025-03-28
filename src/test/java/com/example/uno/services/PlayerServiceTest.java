@@ -11,18 +11,18 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class PlayerServiceTest {
+class PlayerServiceTest {
 
   @InjectMocks
   PlayerService playerService;
 
   @Test
-  public void contextLoad() {
+  void contextLoad() {
     assertThat(playerService).isNotNull();
   }
 
   @Test
-  public void testAddPlayer() {
+  void testAddPlayer() {
     String sessionId = "123";
     String playerName = "testPlayer";
     ConnectionData connectionData = new ConnectionData("0.0.0.0", 12345);
@@ -42,7 +42,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testRemovePlayer() {
+  void testRemovePlayer() {
     String sessionId = "123";
     String playerName = "testPlayer";
     ConnectionData connectionData = new ConnectionData("0.0.0.0", 12345);
@@ -57,7 +57,7 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testGetPlayer() {
+  void testGetPlayer() {
     String sessionId = "123";
     String playerName = "testPlayer";
     ConnectionData connectionData = new ConnectionData("0.0.0.0", 12345);
@@ -74,14 +74,14 @@ public class PlayerServiceTest {
   }
 
   @Test
-  public void testGetPlayerFailure() {
+  void testGetPlayerFailure() {
     Player player = playerService.getPlayer("123");
 
     assertThat(player).isNull();
   }
 
   @Test
-  public void testGetPlayerSessionIdList() {
+  void testGetPlayerSessionIdList() {
     int count = 5;
     for (int i = 1; i <= count; ++i) {
       String sessionId = Integer.toString(i);
@@ -93,7 +93,7 @@ public class PlayerServiceTest {
 
     List<String> sessionIdList = playerService.getPlayerSessionIdList();
 
-    assertThat(sessionIdList.size()).isEqualTo(count);
+    assertThat(sessionIdList).hasSize(count);
     for (int i = 1; i <= count; ++i) {
       assertThat(sessionIdList.get(i - 1)).isEqualTo(Integer.toString(i));
     }

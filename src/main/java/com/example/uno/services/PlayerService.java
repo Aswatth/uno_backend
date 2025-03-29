@@ -5,7 +5,6 @@ import com.example.uno.models.Player;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * An implementation of IPlayerService.
@@ -27,7 +26,7 @@ public class PlayerService implements IPlayerService {
 
   @Override
   public void removePlayer(String sessionId) {
-    Player removedPlayer = playerMap.remove(sessionId);
+    playerMap.remove(sessionId);
   }
 
   @Override

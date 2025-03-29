@@ -2,7 +2,7 @@ package com.example.uno.controllers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.example.uno.services.GameService;
+import com.example.uno.services.LobbyManagerService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -15,13 +15,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class UTGameControllerTest {
+class UTLobbyManagerControllerTest {
 
   @Mock
-  GameService gameService;
+  LobbyManagerService gameService;
 
   @InjectMocks
-  GameController gameController;
+  LobbyManagerController lobbyManagerController;
 
   @Test
   void testCreateGame() {
@@ -33,9 +33,9 @@ class UTGameControllerTest {
         Map.entry("minPlayers", minPlayers)
     );
 
-    Mockito.when(gameService.createGame(gameName, minPlayers)).thenReturn(gameId);
+    Mockito.when(gameService.createLobby(gameName, minPlayers)).thenReturn(gameId);
 
-    assertThat(gameController.createGame(request)).isEqualTo(gameId);
+    assertThat(lobbyManagerController.createLobby(request)).isEqualTo(gameId);
 
   }
 
@@ -44,11 +44,11 @@ class UTGameControllerTest {
     String gameId = "123";
     String playerSessionId = "p123";
 
-    Mockito.doNothing().when(gameService).joinGame(gameId, playerSessionId);
+    Mockito.doNothing().when(gameService).joinLobby(gameId, playerSessionId);
 
-    gameController.joinGame(playerSessionId, gameId);
+    lobbyManagerController.joinLobby(playerSessionId, gameId);
 
-    Mockito.verify(gameService).joinGame(gameId, playerSessionId);
+    Mockito.verify(gameService).joinLobby(gameId, playerSessionId);
   }
 
   @Test
@@ -61,22 +61,10 @@ class UTGameControllerTest {
         Map.entry("currentPlayers", Arrays.asList("testPlayer2", "testPlayer3"))
     ));
 
-    Mockito.when(gameService.browseGames()).thenReturn(gameList);
+    Mockito.when(gameService.browseLobbies()).thenReturn(gameList);
 
-    assertThat(gameController.browseGames()).isEqualTo(gameList);
+    assertThat(lobbyManagerController.browseLobbies()).isEqualTo(gameList);
 
-    Mockito.verify(gameService).browseGames();
-  }
-
-  @Test
-  void testStartGame() {
-
-    String gameId = "123";
-
-    Mockito.doNothing().when(gameService).startGame(gameId);
-
-    gameController.startGame(gameId);
-
-    Mockito.verify(gameService).startGame(gameId);
+    Mockito.verify(gameService).browseLobbies();
   }
 }

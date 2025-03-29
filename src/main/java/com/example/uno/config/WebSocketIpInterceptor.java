@@ -19,16 +19,15 @@ public class WebSocketIpInterceptor implements HandshakeInterceptor {
       WebSocketHandler wsHandler,
       Map<String, Object> attributes) {
 
-    if (request instanceof ServletServerHttpRequest) {
-      ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
+    ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
 
-      String clientIp = servletRequest.getServletRequest().getRemoteAddr();
-      int clientPort = servletRequest.getServletRequest().getRemotePort();
+    String clientIp = servletRequest.getServletRequest().getRemoteAddr();
+    int clientPort = servletRequest.getServletRequest().getRemotePort();
 
-      ConnectionData connectionData = new ConnectionData(clientIp, clientPort);
+    ConnectionData connectionData = new ConnectionData(clientIp, clientPort);
 
-      attributes.put("connectionData", connectionData);
-    }
+    attributes.put("connectionData", connectionData);
+
     return true;
   }
 

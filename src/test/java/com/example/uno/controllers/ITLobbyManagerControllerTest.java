@@ -4,7 +4,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.example.uno.services.GameService;
+import com.example.uno.services.LobbyManagerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -33,7 +33,7 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
-class ITGameControllerTest {
+class ITLobbyManagerControllerTest {
 
   @LocalServerPort
   int port;
@@ -43,10 +43,10 @@ class ITGameControllerTest {
   WebSocketStompClient stompClient;
 
   @MockitoBean
-  GameService gameService;
+  LobbyManagerService gameService;
 
   @InjectMocks
-  GameController gameController;
+  LobbyManagerController lobbyManagerController;
 
   class DefaultStompFrameHandler implements StompFrameHandler {
 
@@ -69,7 +69,7 @@ class ITGameControllerTest {
 
   @Test
   void contextLoad() {
-    assertThat(gameController).isNotNull();
+    assertThat(lobbyManagerController).isNotNull();
   }
 
   @Test
@@ -82,19 +82,19 @@ class ITGameControllerTest {
     Map<String, Object> payload = Map.ofEntries(Map.entry("gameName", gameName),
         Map.entry("minPlayers", minPlayers));
 
-    Mockito.when(gameService.createGame(gameName, minPlayers)).thenReturn(gameId);
+    Mockito.when(gameService.createLobby(gameName, minPlayers)).thenReturn(gameId);
 
     StompSession session = stompClient
         .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
             new StompSessionHandlerAdapter() {
             })
         .get(1, SECONDS);
-    session.subscribe("/user/queue/game", new DefaultStompFrameHandler());
+    session.subscribe("/user/queue/lobby", new DefaultStompFrameHandler());
 
-    session.send("/app/game", new ObjectMapper().writeValueAsBytes(payload));
+    session.send("/app/lobby", new ObjectMapper().writeValueAsBytes(payload));
 
     await().atMost(1, SECONDS).untilAsserted(() -> {
-      Mockito.verify(gameService).createGame(gameName, minPlayers);
+      Mockito.verify(gameService).createLobby(gameName, minPlayers);
       assertThat(blockingQueue.poll()).isEqualTo(gameId);
     });
   }
@@ -107,19 +107,19 @@ class ITGameControllerTest {
         Map.entry("gameName", "testGame2"),
         Map.entry("currentPlayers", Arrays.asList("testPlayer2", "testPlayer3"))));
 
-    Mockito.when(gameService.browseGames()).thenReturn(gameList);
+    Mockito.when(gameService.browseLobbies()).thenReturn(gameList);
 
     StompSession session = stompClient
         .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
             new StompSessionHandlerAdapter() {
             })
         .get(1, SECONDS);
-    session.subscribe("/user/queue/browse-games", new DefaultStompFrameHandler());
+    session.subscribe("/user/queue/browse-lobbies", new DefaultStompFrameHandler());
 
-    session.send("/app/browse-games", new ObjectMapper().writeValueAsBytes(""));
+    session.send("/app/browse-lobbies", new ObjectMapper().writeValueAsBytes(""));
 
     await().atMost(1, SECONDS).untilAsserted(() -> {
-          Mockito.verify(gameService).browseGames();
+          Mockito.verify(gameService).browseLobbies();
           assertThat(Objects.requireNonNull(blockingQueue.poll()).getBytes()).isEqualTo(
               new ObjectMapper().writeValueAsBytes(gameList));
         }
@@ -136,32 +136,13 @@ class ITGameControllerTest {
             })
         .get(1, SECONDS);
 
-    Mockito.doNothing().when(gameService).joinGame(Mockito.eq(gameId), Mockito.anyString());
+    Mockito.doNothing().when(gameService).joinLobby(Mockito.eq(gameId), Mockito.anyString());
 
-    session.subscribe("/topic/join-game/123", new DefaultStompFrameHandler());
+    session.subscribe("/topic/join-lobby/123", new DefaultStompFrameHandler());
 
-    session.send("/app/join-game/123", new ObjectMapper().writeValueAsBytes(""));
+    session.send("/app/join-lobby/123", new ObjectMapper().writeValueAsBytes(""));
 
     Mockito.verify(gameService, Mockito.timeout(1000))
-        .joinGame(Mockito.eq(gameId), Mockito.anyString());
-  }
-
-  @Test
-  void testStartGame() throws Exception {
-    String gameId = "123";
-
-    Mockito.doNothing().when(gameService).startGame(gameId);
-
-    StompSession session = stompClient
-        .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
-            new StompSessionHandlerAdapter() {
-            })
-        .get(1, SECONDS);
-
-    session.subscribe("/user/queue/game/" + gameId, new DefaultStompFrameHandler());
-
-    session.send("/app/game/" + gameId, new ObjectMapper().writeValueAsBytes(""));
-
-    Mockito.verify(gameService, Mockito.timeout(1000)).startGame(gameId);
+        .joinLobby(Mockito.eq(gameId), Mockito.anyString());
   }
 }

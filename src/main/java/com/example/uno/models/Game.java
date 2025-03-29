@@ -6,21 +6,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 
 /**
  * A model defining game attributes.
  */
 public class Game {
 
-  private final String gameId;
-  private int minPlayers;
-  private final List<Player> currentPlayers;
-  private Player host;
-  private String gameName;
-
+  private List<Player> currentPlayers;
   private GameStatus gameStatus;
   private final List<Card> cardList;
   private final List<Card> discardPile;
@@ -30,12 +23,8 @@ public class Game {
   private int direction = 1;
   private Player winner;
 
-  public Game(String gameId, int minPlayers, String gameName) {
-    this.gameId = gameId;
-    this.minPlayers = minPlayers;
-    this.currentPlayers = new ArrayList<>();
-    this.gameName = gameName;
-
+  public Game(List<Player> currentPlayers) {
+    this.currentPlayers = currentPlayers;
     this.gameStatus = GameStatus.WAITING;
     this.cardList = new ArrayList<>();
     this.discardPile = new ArrayList<>();
@@ -69,92 +58,36 @@ public class Game {
     this.drawPile = new ArrayList<>(cardList);
   }
 
-  public int getMinPlayers() {
-    return minPlayers;
-  }
-
-  public void setMinPlayers(int minPlayers) {
-    this.minPlayers = minPlayers;
-  }
-
-  public List<Player> getCurrentPlayers() {
-    return currentPlayers;
-  }
-
-  public void addPlayer(Player player) {
-    this.currentPlayers.add(player);
-    if (currentPlayers.size() == 1) {
-      this.host = player;
-    }
-  }
-
-  public void removePlayer(Player player) {
-    this.currentPlayers.remove(player);
-
-    // Assign next player as host if host leaves the game.
-    if (!this.currentPlayers.isEmpty() && Objects.equals(player.getSessionId(),
-        host.getSessionId())) {
-      Optional<Player> nextPlayer = this.currentPlayers.stream().findFirst();
-      nextPlayer.ifPresent(value -> this.host = value);
-    }
-  }
-
-  public String getGameName() {
-    return gameName;
-  }
-
-  public void setGameName(String gameName) {
-    this.gameName = gameName;
-  }
-
-  public Player getHost() {
-    return this.host;
-  }
-
-  public boolean isHost(String playerSessionId) {
-    return Objects.equals(host.getSessionId(), playerSessionId);
-  }
-
-  public Map<String, Object> toMap() {
-    Map<String, Object> map = new HashMap<>();
-
-    map.put("gameId", gameId);
-    map.put("gameName", gameName);
-    map.put("currentPlayers", currentPlayers.stream().map(Player::getName).toList());
-
-    return map;
-  }
-
   public Map<Player, List<Card>> dealCards() {
     Collections.shuffle(this.cardList);
     this.drawPile = new ArrayList<>(this.cardList);
 
     for (Player player : currentPlayers) {
-      List<Card> cardList = new ArrayList<>();
+      List<Card> cardsToDeal = new ArrayList<>();
 
       for (int i = 1; i <= 7; ++i) {
         Card card = this.drawPile.getFirst();
-        cardList.add(card);
+        cardsToDeal.add(card);
         this.drawPile.removeFirst();
       }
 
-      this.playerCardList.put(player, cardList);
+      this.playerCardList.put(player, cardsToDeal);
     }
 
-    Random random = new Random();
-    this.currentPlayerIndex = random.nextInt(this.currentPlayers.size());
+    Collections.shuffle(this.currentPlayers);
+    this.currentPlayerIndex = 0;
 
     Card card = this.drawPile.getFirst();
     this.drawPile.removeFirst();
 
-    while (card.getCardColor() != Color.WILD && card.getCardValue() != Value.DRAW4) {
+    while (card.cardColor() != Color.WILD && card.cardValue() != Value.DRAW4) {
       this.drawPile.add(card);
 
       card = this.drawPile.getFirst();
       this.drawPile.removeFirst();
     }
 
-    switch (card.getCardValue()) {
+    switch (card.cardValue()) {
       case REVERSE:
         direction *= -1;
         break;
@@ -164,6 +97,8 @@ public class Game {
       case DRAW2:
         pass();
         draw(2);
+        break;
+      default:
         break;
     }
 
@@ -218,28 +153,28 @@ public class Game {
   }
 
   public void play(Card card) {
-    List<Card> cardList = playerCardList.get(getCurrentPlayer());
+    List<Card> playerCards = playerCardList.get(getCurrentPlayer());
 
-    if (card.getCardValue() == Value.WILD || card.getCardValue() == Value.DRAW4) {
-      Optional<Card> cardToRemove = cardList.stream().filter(
-              f -> f.getCardValue() == card.getCardValue() && f.getCardColor() == Color.WILD)
+    if (card.cardValue() == Value.WILD || card.cardValue() == Value.DRAW4) {
+      Optional<Card> cardToRemove = playerCards.stream().filter(
+              f -> f.cardValue() == card.cardValue() && f.cardColor() == Color.WILD)
           .findFirst();
 
-      cardToRemove.ifPresent(cardList::remove);
+      cardToRemove.ifPresent(playerCards::remove);
 
     } else {
-      cardList.remove(card);
+      playerCards.remove(card);
     }
 
-    playerCardList.put(getCurrentPlayer(), cardList);
+    playerCardList.put(getCurrentPlayer(), playerCards);
 
     this.discardPile.add(card);
 
-    if (cardList.isEmpty()) {
+    if (playerCards.isEmpty()) {
       winner = getCurrentPlayer();
     }
 
-    switch (card.getCardValue()) {
+    switch (card.cardValue()) {
       case SKIP:
         pass();
         pass();
@@ -269,15 +204,6 @@ public class Game {
 
   public Player getWinner() {
     return winner;
-  }
-
-  @Override
-  public String toString() {
-    return "Game{" +
-        "minPlayers=" + minPlayers +
-        ", currentPlayers=" + currentPlayers +
-        ", gameName='" + gameName + '\'' +
-        '}';
   }
 
   public GameStatus getGameStatus() {

@@ -2,181 +2,22 @@ package com.example.uno.models;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class GameModelTest {
-
-  private final String gameName = "testGame";
-  private final int minPlayers = 2;
-  private final String gameId = "123";
-  private Game game;
-
-  @BeforeEach
-  void setup() {
-    game = new Game(gameId, minPlayers, gameName);
-  }
-
-  @Test
-  void testGameCreation() {
-    assertThat(game).isNotNull();
-  }
-
-  @Test
-  void testToMap() {
-    Map<String, Object> map = game.toMap();
-    assertThat(map).containsEntry("gameId", gameId).containsEntry("gameName", gameName);
-  }
-
-  @Test
-  void testGetMinPlayers() {
-    assertThat(game.getMinPlayers()).isEqualTo(2);
-  }
-
-  @Test
-  void testGetGameName() {
-    assertThat(game.getGameName()).isEqualTo(gameName);
-  }
-
-  @Test
-  void testGetPlayer() {
-    Player testPlayer = new Player("123", "testPlayer", new ConnectionData("0.0.0.0", 1234));
-    game.addPlayer(testPlayer);
-
-    assertThat(game.getCurrentPlayers()).hasSize(1);
-    assertThat(game.getCurrentPlayers().stream().findFirst()).contains(testPlayer);
-  }
-
-  @Test
-  void testGetPlayerAfterRemoving() {
-    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
-
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
-
-    game.removePlayer(testPlayer1);
-
-    assertThat(game.getCurrentPlayers()).hasSize(1);
-  }
-
-  @Test
-  void testGetPlayerTwoPlayers() {
-    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
-
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
-
-    assertThat(game.getCurrentPlayers()).hasSize(2);
-  }
-
-  @Test
-  void testGetHost() {
-    Player testPlayer = new Player("123", "testPlayer", new ConnectionData("0.0.0.0", 1234));
-    game.addPlayer(testPlayer);
-
-    assertThat(game.getHost()).isEqualTo(testPlayer);
-  }
-
-  @Test
-  void testIsHostTrue() {
-    Player testPlayer = new Player("123", "testPlayer", new ConnectionData("0.0.0.0", 1234));
-    game.addPlayer(testPlayer);
-
-    assertThat(game.isHost(testPlayer.getSessionId())).isTrue();
-  }
-
-  @Test
-  void testIsHostFalse() {
-    Player testPlayer = new Player("123", "testPlayer", new ConnectionData("0.0.0.0", 1234));
-    game.addPlayer(testPlayer);
-
-    assertThat(game.isHost("1")).isFalse();
-  }
-
-
-  @Test
-  void testGetHostTwoPlayers() {
-    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
-
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
-
-    assertThat(game.getHost()).isEqualTo(testPlayer1);
-    assertThat(game.getHost()).isNotEqualTo(testPlayer2);
-  }
-
-  @Test
-  void testGetHostAfterRemovingAPlayer() {
-    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
-
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
-
-    game.removePlayer(testPlayer1);
-
-    assertThat(game.getHost()).isEqualTo(testPlayer2);
-  }
-
-
-  @Test
-  void testIsHostTwoPlayers() {
-    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
-
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
-
-    assertThat(game.isHost(testPlayer1.getSessionId())).isTrue();
-    assertThat(game.isHost(testPlayer2.getSessionId())).isFalse();
-  }
-
-  @Test
-  void testIsHostAfterRemovingAPlayer() {
-    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
-
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
-
-    game.removePlayer(testPlayer1);
-
-    assertThat(game.isHost(testPlayer2.getSessionId())).isTrue();
-  }
-
-  @Test
-  void testSetMinPlayers() {
-    int newMinPlayers = 4;
-    assertThat(game.getMinPlayers()).isEqualTo(minPlayers);
-
-    game.setMinPlayers(newMinPlayers);
-
-    assertThat(game.getMinPlayers()).isEqualTo(newMinPlayers);
-  }
-
-  @Test
-  void testSetGameName() {
-    String newGameName = "anotherTestName";
-    assertThat(game.getGameName()).isEqualTo(gameName);
-
-    game.setGameName(newGameName);
-
-    assertThat(game.getGameName()).isEqualTo(newGameName);
-  }
 
   @Test
   void testGenerateCardsForTwoPlayers() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     Map<Player, List<Card>> playerCardList = game.dealCards();
 
@@ -198,16 +39,10 @@ class GameModelTest {
     Player testPlayer9 = new Player("9", "testPlayer9", new ConnectionData("0.0.0.0", 9));
     Player testPlayer10 = new Player("10", "testPlayer10", new ConnectionData("0.0.0.0", 10));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
-    game.addPlayer(testPlayer3);
-    game.addPlayer(testPlayer4);
-    game.addPlayer(testPlayer5);
-    game.addPlayer(testPlayer6);
-    game.addPlayer(testPlayer7);
-    game.addPlayer(testPlayer8);
-    game.addPlayer(testPlayer9);
-    game.addPlayer(testPlayer10);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2, testPlayer3, testPlayer4,
+        testPlayer5, testPlayer6, testPlayer7, testPlayer8, testPlayer9, testPlayer10);
+
+    Game game = new Game(playerList);
 
     Map<Player, List<Card>> playerCardList = game.dealCards();
 
@@ -221,8 +56,9 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 
@@ -238,8 +74,9 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 
@@ -255,8 +92,9 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 
@@ -272,8 +110,9 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 
@@ -291,8 +130,9 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 
@@ -310,8 +150,9 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 
@@ -329,14 +170,15 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 
     Player currentPlayer = game.getCurrentPlayer();
     Card cardToPLay = game.getCards(currentPlayer).stream()
-        .filter(f -> f.getCardValue() != Value.DRAW2 && f.getCardValue() != Value.DRAW4).findFirst()
+        .filter(f -> f.cardValue() != Value.DRAW2 && f.cardValue() != Value.DRAW4).findFirst()
         .get();
 
     Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
@@ -354,8 +196,9 @@ class GameModelTest {
     Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
 
     Player winner = null;
-    game.addPlayer(testPlayer1);
-    game.addPlayer(testPlayer2);
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
+
+    Game game = new Game(playerList);
 
     game.dealCards();
 

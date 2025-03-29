@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class PlayerModelTest {
+class PlayerModelTest {
 
   private final String sessionId = "123";
   private final String playerName = "testPlayer";
@@ -13,17 +13,17 @@ public class PlayerModelTest {
   private Player player;
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     player = new Player(sessionId, playerName, connectionData);
   }
 
   @Test
-  public void testGetSessionId() {
+  void testGetSessionId() {
     assertThat(player.getSessionId()).isEqualTo(sessionId);
   }
 
   @Test
-  public void testSetSessionId() {
+  void testSetSessionId() {
     String newSessionId = "234";
     player.setSessionId(newSessionId);
 
@@ -31,12 +31,12 @@ public class PlayerModelTest {
   }
 
   @Test
-  public void testGetName() {
+  void testGetName() {
     assertThat(player.getName()).isEqualTo(playerName);
   }
 
   @Test
-  public void testSetName() {
+  void testSetName() {
     String newPlayerName = "newName";
     player.setName(newPlayerName);
 
@@ -44,17 +44,15 @@ public class PlayerModelTest {
   }
 
   @Test
-  public void testGetConnectionData() {
+  void testGetConnectionData() {
     assertThat(player.getConnectionData()).isEqualTo(connectionData);
   }
 
   @Test
-  public void testSetConnectionData() {
+  void testSetConnectionData() {
     ConnectionData newConnectionData = new ConnectionData("0.0.0.0", 12345);
     player.setConnectionData(newConnectionData);
 
     assertThat(player.getConnectionData()).isEqualTo(newConnectionData);
-
   }
-
 }

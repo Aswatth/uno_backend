@@ -3,8 +3,8 @@ package com.example.uno.controllers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.uno.services.GameService;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class UTGameControllerTest {
+class UTGameControllerTest {
 
   @Mock
   GameService gameService;
@@ -24,13 +24,14 @@ public class UTGameControllerTest {
   GameController gameController;
 
   @Test
-  public void testCreateGame() {
+  void testCreateGame() {
     String gameName = "testGameName";
     int minPlayers = 2;
     String gameId = "123";
-    Map<String, Object> request = new HashMap<>();
-    request.put("gameName", gameName);
-    request.put("minPlayers", minPlayers);
+    Map<String, Object> request = Map.ofEntries(
+        Map.entry("gameName", gameName),
+        Map.entry("minPlayers", minPlayers)
+    );
 
     Mockito.when(gameService.createGame(gameName, minPlayers)).thenReturn(gameId);
 
@@ -39,7 +40,7 @@ public class UTGameControllerTest {
   }
 
   @Test
-  public void testJoinGame() {
+  void testJoinGame() {
     String gameId = "123";
     String playerSessionId = "p123";
 
@@ -51,29 +52,24 @@ public class UTGameControllerTest {
   }
 
   @Test
-  public void testBrowseGames() {
-    List<Map<String, Object>> gameList = new ArrayList<>();
-    gameList.add(new HashMap<>() {{
-      put("gameName", "testGame1");
-      put("currentPlayers", new ArrayList<>() {{
-        add("testPlayer1");
-      }});
-    }});
-    gameList.add(new HashMap<>() {{
-      put("gameName", "testGame2");
-      put("currentPlayers", new ArrayList<>() {{
-        add("testPlayer2");
-        add("testPlayer3");
-      }});
-    }});
+  void testBrowseGames() {
+    List<Map<String, Object>> gameList = Arrays.asList(Map.ofEntries(
+        Map.entry("gameName", "testGame1"),
+        Map.entry("currentPlayers", Collections.singletonList("testPlayer1"))
+    ), Map.ofEntries(
+        Map.entry("gameName", "testGame2"),
+        Map.entry("currentPlayers", Arrays.asList("testPlayer2", "testPlayer3"))
+    ));
 
     Mockito.when(gameService.browseGames()).thenReturn(gameList);
+
+    Mockito.verify(gameService).browseGames();
 
     assertThat(gameController.browseGames()).isEqualTo(gameList);
   }
 
   @Test
-  public void testStartGame() {
+  void testStartGame() {
 
     String gameId = "123";
 

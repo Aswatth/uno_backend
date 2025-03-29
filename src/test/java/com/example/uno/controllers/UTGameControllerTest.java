@@ -63,9 +63,9 @@ class UTGameControllerTest {
 
     Mockito.when(gameService.browseGames()).thenReturn(gameList);
 
-    Mockito.verify(gameService).browseGames();
-
     assertThat(gameController.browseGames()).isEqualTo(gameList);
+
+    Mockito.verify(gameService).browseGames();
   }
 
   @Test

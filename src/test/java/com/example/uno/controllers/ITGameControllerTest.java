@@ -93,11 +93,10 @@ class ITGameControllerTest {
 
     session.send("/app/game", new ObjectMapper().writeValueAsBytes(payload));
 
-    Mockito.verify(gameService).createGame(gameName, minPlayers);
-
-    await().atMost(1, SECONDS).untilAsserted(() ->
-        assertThat(blockingQueue.poll()).isEqualTo(gameId)
-    );
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+      Mockito.verify(gameService).createGame(gameName, minPlayers);
+      assertThat(blockingQueue.poll()).isEqualTo(gameId);
+    });
   }
 
   @Test
@@ -119,11 +118,11 @@ class ITGameControllerTest {
 
     session.send("/app/browse-games", new ObjectMapper().writeValueAsBytes(""));
 
-    Mockito.verify(gameService).browseGames();
-
-    await().atMost(1, SECONDS).untilAsserted(() ->
-        assertThat(Objects.requireNonNull(blockingQueue.poll()).getBytes()).isEqualTo(
-            new ObjectMapper().writeValueAsBytes(gameList))
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+          Mockito.verify(gameService).browseGames();
+          assertThat(Objects.requireNonNull(blockingQueue.poll()).getBytes()).isEqualTo(
+              new ObjectMapper().writeValueAsBytes(gameList));
+        }
     );
   }
 
@@ -137,7 +136,7 @@ class ITGameControllerTest {
             })
         .get(1, SECONDS);
 
-    Mockito.doNothing().when(gameService).joinGame(gameId, Mockito.anyString());
+    Mockito.doNothing().when(gameService).joinGame(Mockito.eq(gameId), Mockito.anyString());
 
     session.subscribe("/topic/join-game/123", new DefaultStompFrameHandler());
 

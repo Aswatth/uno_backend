@@ -13,7 +13,7 @@ import java.util.Optional;
  */
 public class Game {
 
-  private List<Player> currentPlayers;
+  private final List<Player> currentPlayers;
   private GameStatus gameStatus;
   private final List<Card> cardList;
   private final List<Card> discardPile;

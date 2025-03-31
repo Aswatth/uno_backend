@@ -2,11 +2,14 @@ package com.example.uno.models;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class LobbyModelTest {
+
   private final String gameName = "testGame";
   private final int minPlayers = 2;
   private final String gameId = "123";
@@ -23,9 +26,37 @@ class LobbyModelTest {
   }
 
   @Test
+  void testGetGameId() {
+    assertThat(lobby.getGameId()).isEqualTo(gameId);
+  }
+
+  @Test
   void testToMap() {
     Map<String, Object> map = lobby.toMap();
-    assertThat(map).containsEntry("gameId", gameId).containsEntry("gameName", gameName);
+    assertThat(map).containsEntry("gameId", gameId).containsEntry("gameName", gameName)
+        .containsEntry("currentPlayers",
+            Collections.emptyList());
+  }
+
+  @Test
+  void testToMapWithPlayers() {
+    Player player1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
+    Player player2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
+
+    lobby.addPlayer(player1);
+    lobby.addPlayer(player2);
+
+    Map<String, Object> map = lobby.toMap();
+
+    assertThat(map).containsEntry("gameId", gameId).containsEntry("gameName", gameName)
+        .containsEntry("currentPlayers",
+            List.of(Map.ofEntries(
+                Map.entry("playerName", player1.getName()),
+                Map.entry("status", true)
+            ), Map.ofEntries(
+                Map.entry("playerName", player2.getName()),
+                Map.entry("status", false)
+            )));
   }
 
   @Test
@@ -165,5 +196,71 @@ class LobbyModelTest {
     lobby.setGameName(newGameName);
 
     assertThat(lobby.getGameName()).isEqualTo(newGameName);
+  }
+
+  @Test
+  void testGetPlayerStatusOnePlayer() {
+    Player player = new Player("1", "testPlayer", new ConnectionData("0.0.0.0", 1));
+
+    lobby.addPlayer(player);
+
+    assertThat(lobby.getPlayerStatus(player)).isTrue();
+  }
+
+  @Test
+  void testGetPlayerStatusTwoPlayer() {
+    Player player1 = new Player("1", "testPlayer", new ConnectionData("0.0.0.0", 1));
+    Player player2 = new Player("2", "testPlayer", new ConnectionData("0.0.0.0", 2));
+
+    lobby.addPlayer(player1);
+    lobby.addPlayer(player2);
+
+    assertThat(lobby.getPlayerStatus(player1)).isTrue();
+    assertThat(lobby.getPlayerStatus(player2)).isFalse();
+  }
+
+  @Test
+  void testGetPlayerStatusTwoPlayerOnePlayerLeaves() {
+    Player player1 = new Player("1", "testPlayer", new ConnectionData("0.0.0.0", 1));
+    Player player2 = new Player("2", "testPlayer", new ConnectionData("0.0.0.0", 2));
+
+    lobby.addPlayer(player1);
+    lobby.addPlayer(player2);
+
+    assertThat(lobby.getPlayerStatus(player1)).isTrue();
+    assertThat(lobby.getPlayerStatus(player2)).isFalse();
+
+    lobby.removePlayer(player1);
+
+    assertThat(lobby.getPlayerStatus(player2)).isTrue();
+  }
+
+  @Test
+  void testSetPlayerStatusForHost() {
+    Player player = new Player("1", "testPlayer", new ConnectionData("0.0.0.0", 1));
+
+    lobby.addPlayer(player);
+
+    lobby.setPlayerStatus(player, false);
+
+    assertThat(lobby.getPlayerStatus(player)).isTrue();
+  }
+
+  @Test
+  void testSetPlayerStatusTwoPlayer() {
+    Player player1 = new Player("1", "testPlayer", new ConnectionData("0.0.0.0", 1));
+    Player player2 = new Player("2", "testPlayer", new ConnectionData("0.0.0.0", 2));
+
+    lobby.addPlayer(player1);
+    lobby.addPlayer(player2);
+
+    assertThat(lobby.getPlayerStatus(player1)).isTrue();
+    assertThat(lobby.getPlayerStatus(player2)).isFalse();
+
+    lobby.setPlayerStatus(player1, false);
+    lobby.setPlayerStatus(player2, true);
+
+    assertThat(lobby.getPlayerStatus(player1)).isTrue();
+    assertThat(lobby.getPlayerStatus(player2)).isTrue();
   }
 }

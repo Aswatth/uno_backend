@@ -5,9 +5,5 @@ package com.example.uno.services;
  */
 public interface ILobbyService {
 
-  void setReadyStatus(boolean readyStatus);
-
-  void chat(String message);
-
-  void startGame();
+  void setStatus(String playerSessionId, String gameId, boolean readyStatus);
 }

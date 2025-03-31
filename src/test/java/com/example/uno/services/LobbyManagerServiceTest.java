@@ -6,11 +6,14 @@ import com.example.uno.models.ConnectionData;
 import com.example.uno.models.Player;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -18,12 +21,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import repos.PlayerRepo;
 
 @ExtendWith(MockitoExtension.class)
 class LobbyManagerServiceTest {
 
   @Mock
-  PlayerService playerService;
+  PlayerRepo playerRepo;
 
   @Mock
   SimpMessagingTemplate simpMessagingTemplate;
@@ -58,9 +62,9 @@ class LobbyManagerServiceTest {
         SimpMessageType.MESSAGE);
     headerAccessor.setSessionId(mockPlayer.getSessionId());
 
-    Mockito.when(playerService.getPlayer("123")).thenReturn(mockPlayer);
+    Mockito.when(playerRepo.get("123")).thenReturn(mockPlayer);
 
-    Mockito.when(playerService.getPlayerSessionIdList())
+    Mockito.when(playerRepo.getAllKeys())
         .thenReturn(Collections.singletonList(mockPlayer.getSessionId()));
 
     lobbyManagerService.joinLobby(gameId, mockPlayer.getSessionId());
@@ -75,7 +79,9 @@ class LobbyManagerServiceTest {
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
-                Map.entry("currentPlayers", Collections.singletonList(mockPlayer.getName()))
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
             ));
 
     Mockito.verify(simpMessagingTemplate)
@@ -83,7 +89,9 @@ class LobbyManagerServiceTest {
             Collections.singletonList(Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
-                Map.entry("currentPlayers", Collections.singletonList(mockPlayer.getName()))
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
             )),
             headerAccessor.getMessageHeaders());
 
@@ -97,8 +105,8 @@ class LobbyManagerServiceTest {
     int minPlayers = random.nextInt(7) + 1;
     String gameId = lobbyManagerService.createLobby(gameName, minPlayers);
 
-    Player mockPlayer1 = new Player("1", "testPlayer", new ConnectionData("0.0.0.0", 1));
-    Player mockPlayer2 = new Player("2", "testPlayer", new ConnectionData("0.0.0.0", 2));
+    Player mockPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
+    Player mockPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     SimpMessageHeaderAccessor headerAccessor1 = SimpMessageHeaderAccessor.create(
         SimpMessageType.MESSAGE);
@@ -108,11 +116,11 @@ class LobbyManagerServiceTest {
         SimpMessageType.MESSAGE);
     headerAccessor2.setSessionId(mockPlayer2.getSessionId());
 
-    Mockito.when(playerService.getPlayer("1")).thenReturn(mockPlayer1);
+    Mockito.when(playerRepo.get("1")).thenReturn(mockPlayer1);
 
-    Mockito.when(playerService.getPlayer("2")).thenReturn(mockPlayer2);
+    Mockito.when(playerRepo.get("2")).thenReturn(mockPlayer2);
 
-    Mockito.when(playerService.getPlayerSessionIdList())
+    Mockito.when(playerRepo.getAllKeys())
         .thenReturn(Collections.singletonList(mockPlayer1.getSessionId()));
 
     lobbyManagerService.joinLobby(gameId, mockPlayer1.getSessionId());
@@ -124,13 +132,25 @@ class LobbyManagerServiceTest {
                 getMessageHeaders());
 
     // Notify party members
+    ArgumentCaptor<Map<String, Object>> argumentCaptor = ArgumentCaptor.forClass(HashMap.class);
     Mockito.verify(simpMessagingTemplate)
-        .convertAndSend("/topic/join-lobby/" + gameId,
-            Map.ofEntries(
-                Map.entry("gameId", gameId),
-                Map.entry("gameName", gameName),
-                Map.entry("currentPlayers", Collections.singletonList(mockPlayer1.getName()))
-            ));
+        .convertAndSend(Mockito.eq("/topic/join-lobby/" + gameId),
+            argumentCaptor.capture());
+
+    Map<String, Object> expectedPlayer1Payload = Map.ofEntries(
+        Map.entry("gameId", gameId),
+        Map.entry("gameName", gameName),
+        Map.entry("currentPlayers", Collections.singletonList(
+            Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
+                Map.entry("status", true))))
+    );
+    Map<String, Object> actualPlayer1Payload = argumentCaptor.getValue();
+    assertThat(actualPlayer1Payload).containsKey("gameId").containsValue(gameId)
+        .containsKey("gameName").containsValue(gameName).containsKey("currentPlayers");
+
+    assertThat(new HashSet<>(
+        (List<Map<String, Object>>) actualPlayer1Payload.get("currentPlayers"))).isEqualTo(
+        new HashSet<>((List<Map<String, Object>>) expectedPlayer1Payload.get("currentPlayers")));
 
     // Notify other players about change in party members
     Mockito.verify(simpMessagingTemplate)
@@ -138,11 +158,13 @@ class LobbyManagerServiceTest {
             Collections.singletonList(Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
-                Map.entry("currentPlayers", Collections.singletonList(mockPlayer1.getName()))
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
+                        Map.entry("status", true))))
             )),
             headerAccessor1.getMessageHeaders());
 
-    Mockito.when(playerService.getPlayerSessionIdList())
+    Mockito.when(playerRepo.getAllKeys())
         .thenReturn(Arrays.asList(mockPlayer1.getSessionId(),
             mockPlayer2.getSessionId()));
 
@@ -155,36 +177,94 @@ class LobbyManagerServiceTest {
                 getMessageHeaders());
 
     // Notify party members
-    Mockito.verify(simpMessagingTemplate)
-        .convertAndSend("/topic/join-lobby/" + gameId,
-            Map.ofEntries(
-                Map.entry("gameId", gameId),
-                Map.entry("gameName", gameName),
-                Map.entry("currentPlayers",
-                    Arrays.asList(mockPlayer1.getName(), mockPlayer2.getName())))
+    argumentCaptor = ArgumentCaptor.forClass(HashMap.class);
+    Mockito.verify(simpMessagingTemplate, Mockito.times(2))
+        .convertAndSend(Mockito.eq("/topic/join-lobby/" + gameId), argumentCaptor.capture()
         );
 
+    Map<String, Object> expectedPlayer2Payload = Map.ofEntries(
+        Map.entry("gameId", gameId),
+        Map.entry("gameName", gameName),
+        Map.entry("currentPlayers",
+            Arrays.asList(Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
+                    Map.entry("status", true)),
+                Map.ofEntries(Map.entry("playerName", mockPlayer2.getName()),
+                    Map.entry("status", false))))
+    );
+
+    Map<String, Object> actualPlayer2Payload = argumentCaptor.getValue();
+    assertThat(actualPlayer2Payload).containsKey("gameId").containsValue(gameId)
+        .containsKey("gameName").containsValue(gameName).containsKey("currentPlayers");
+
+    assertThat(new HashSet<>(
+        (List<Map<String, Object>>) actualPlayer2Payload.get("currentPlayers"))).isEqualTo(
+        new HashSet<>((List<Map<String, Object>>) expectedPlayer2Payload.get("currentPlayers")));
+
     // Notify others players of change in party members
-    Mockito.verify(simpMessagingTemplate)
-        .convertAndSendToUser(mockPlayer1.getSessionId(), "/queue/browse-lobbies",
-            Collections.singletonList(Map.ofEntries(
-                Map.entry("gameId", gameId),
-                Map.entry("gameName", gameName),
-                Map.entry("currentPlayers",
-                    Arrays.asList(mockPlayer1.getName(), mockPlayer2.getName()))
-            )),
-            headerAccessor1.getMessageHeaders());
+    ArgumentCaptor<List> listArgumentCaptor = ArgumentCaptor.forClass(List.class);
+
+    Mockito.verify(simpMessagingTemplate, Mockito.times(2))
+        .convertAndSendToUser(Mockito.eq(mockPlayer1.getSessionId()),
+            Mockito.eq("/queue/browse-lobbies"),
+            listArgumentCaptor.capture(),
+            Mockito.eq(headerAccessor1.getMessageHeaders()));
+
+    List<Map<String, Object>> expectedPlayer1BrowseGamesPayload = Collections.singletonList(
+        Map.ofEntries(
+            Map.entry("gameId", gameId),
+            Map.entry("gameName", gameName),
+            Map.entry("currentPlayers",
+                Arrays.asList(Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
+                        Map.entry("status", true)),
+                    Map.ofEntries(Map.entry("playerName", mockPlayer2.getName()),
+                        Map.entry("status", false))))
+        ));
+
+    List<Map<String, Object>> actualPlayer1BrowseGamesPayload = listArgumentCaptor.getValue();
+    assertThat(actualPlayer1BrowseGamesPayload).hasSize(1);
+    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsKey("gameId")
+        .containsValue(gameId);
+    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsKey("gameName")
+        .containsValue(gameName);
+    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsKey("currentPlayers");
+
+    assertThat(new HashSet<>(
+        (List<Map<String, Object>>) actualPlayer1BrowseGamesPayload.getFirst()
+            .get("currentPlayers"))).isEqualTo(
+        new HashSet<>((List<Map<String, Object>>) expectedPlayer1BrowseGamesPayload.getFirst()
+            .get("currentPlayers")));
 
     // Notify others players of change in party members
     Mockito.verify(simpMessagingTemplate)
-        .convertAndSendToUser(mockPlayer2.getSessionId(), "/queue/browse-lobbies",
-            Collections.singletonList(Map.ofEntries(
-                Map.entry("gameId", gameId),
-                Map.entry("gameName", gameName),
-                Map.entry("currentPlayers",
-                    Arrays.asList(mockPlayer1.getName(), mockPlayer2.getName()))
-            )),
-            headerAccessor2.getMessageHeaders());
+        .convertAndSendToUser(Mockito.eq(mockPlayer2.getSessionId()),
+            Mockito.eq("/queue/browse-lobbies"),
+            listArgumentCaptor.capture(),
+            Mockito.eq(headerAccessor2.getMessageHeaders()));
+
+    List<Map<String, Object>> expectedPlayer2BrowseGamesPayload = Collections.singletonList(
+        Map.ofEntries(
+            Map.entry("gameId", gameId),
+            Map.entry("gameName", gameName),
+            Map.entry("currentPlayers",
+                Arrays.asList(Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
+                        Map.entry("status", true)),
+                    Map.ofEntries(Map.entry("playerName", mockPlayer2.getName()),
+                        Map.entry("status", false))))
+        ));
+
+    List<Map<String, Object>> actualPlayer2BrowseGamesPayload = listArgumentCaptor.getValue();
+    assertThat(actualPlayer2BrowseGamesPayload).hasSize(1);
+    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsKey("gameId")
+        .containsValue(gameId);
+    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsKey("gameName")
+        .containsValue(gameName);
+    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsKey("currentPlayers");
+
+    assertThat(new HashSet<>(
+        (List<Map<String, Object>>) actualPlayer2BrowseGamesPayload.getFirst()
+            .get("currentPlayers"))).isEqualTo(
+        new HashSet<>((List<Map<String, Object>>) expectedPlayer2BrowseGamesPayload.getFirst()
+            .get("currentPlayers")));
 
     assertThat(lobbyManagerService.browseLobbies()).hasSize(1);
   }
@@ -202,9 +282,9 @@ class LobbyManagerServiceTest {
         SimpMessageType.MESSAGE);
     headerAccessor.setSessionId(mockPlayer.getSessionId());
 
-    Mockito.when(playerService.getPlayer("123")).thenReturn(mockPlayer);
+    Mockito.when(playerRepo.get("123")).thenReturn(mockPlayer);
 
-    Mockito.when(playerService.getPlayerSessionIdList())
+    Mockito.when(playerRepo.getAllKeys())
         .thenReturn(Collections.singletonList(mockPlayer.getSessionId()));
 
     lobbyManagerService.joinLobby(gameId, mockPlayer.getSessionId());
@@ -219,7 +299,9 @@ class LobbyManagerServiceTest {
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
-                Map.entry("currentPlayers", Collections.singletonList(mockPlayer.getName()))
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
             ));
 
     Mockito.verify(simpMessagingTemplate)
@@ -227,7 +309,9 @@ class LobbyManagerServiceTest {
             Collections.singletonList(Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
-                Map.entry("currentPlayers", Collections.singletonList(mockPlayer.getName()))
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
             )),
             headerAccessor.getMessageHeaders());
 
@@ -259,9 +343,9 @@ class LobbyManagerServiceTest {
         SimpMessageType.MESSAGE);
     headerAccessor2.setSessionId(mockPlayer2.getSessionId());
 
-    Mockito.when(playerService.getPlayer("1")).thenReturn(mockPlayer1);
+    Mockito.when(playerRepo.get("1")).thenReturn(mockPlayer1);
 
-    Mockito.when(playerService.getPlayer("2")).thenReturn(mockPlayer2);
+    Mockito.when(playerRepo.get("2")).thenReturn(mockPlayer2);
 
     lobbyManagerService.joinLobby(gameId, mockPlayer1.getSessionId());
 
@@ -272,7 +356,7 @@ class LobbyManagerServiceTest {
             headerAccessor2.
                 getMessageHeaders());
 
-    Mockito.when(playerService.getPlayerSessionIdList())
+    Mockito.when(playerRepo.getAllKeys())
         .thenReturn(Collections.singletonList(mockPlayer2.getSessionId()));
 
     lobbyManagerService.leaveLobby(mockPlayer1.getSessionId());
@@ -290,7 +374,9 @@ class LobbyManagerServiceTest {
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
                 Map.entry("currentPlayers",
-                    Collections.singletonList(mockPlayer2.getName())))
+                    Collections.singletonList(
+                        Map.ofEntries(Map.entry("playerName", mockPlayer2.getName()),
+                            Map.entry("status", true)))))
         );
 
     // Notify other players of the change in party members
@@ -300,7 +386,9 @@ class LobbyManagerServiceTest {
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
                 Map.entry("currentPlayers",
-                    Collections.singletonList(mockPlayer2.getName())))),
+                    Collections.singletonList(
+                        Map.ofEntries(Map.entry("playerName", mockPlayer2.getName()),
+                            Map.entry("status", true)))))),
             headerAccessor2.getMessageHeaders());
 
     assertThat(lobbyManagerService.browseLobbies()).hasSize(1);
@@ -314,7 +402,7 @@ class LobbyManagerServiceTest {
     String gameId = lobbyManagerService.createLobby(gameName, minPlayers);
 
     Player mockPlayer = new Player("123", "testPlayer", new ConnectionData("0.0.0.0", 12345));
-    Mockito.when(playerService.getPlayer("123")).thenReturn(mockPlayer);
+    Mockito.when(playerRepo.get("123")).thenReturn(mockPlayer);
 
     lobbyManagerService.joinLobby(gameId, mockPlayer.getSessionId());
 
@@ -325,6 +413,7 @@ class LobbyManagerServiceTest {
     assertThat(gameList.getFirst()).containsEntry("gameName", gameName);
 
     assertThat(gameList.getFirst()).containsEntry("currentPlayers",
-        Collections.singletonList(mockPlayer.getName()));
+        Collections.singletonList(Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+            Map.entry("status", true))));
   }
 }

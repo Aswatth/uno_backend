@@ -13,7 +13,7 @@ class GameModelTest {
   @Test
   void testGenerateCardsForTwoPlayers() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -54,7 +54,7 @@ class GameModelTest {
   @Test
   void testPass() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -72,7 +72,7 @@ class GameModelTest {
   @Test
   void testGetPlayerCards() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -90,7 +90,7 @@ class GameModelTest {
   @Test
   void testPlaySkipCard() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -108,7 +108,7 @@ class GameModelTest {
   @Test
   void testPlayDraw2Card() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -128,7 +128,7 @@ class GameModelTest {
   @Test
   void testPlayDraw4Card() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -148,7 +148,7 @@ class GameModelTest {
   @Test
   void testPlayWildCard() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -168,7 +168,7 @@ class GameModelTest {
   @Test
   void testPlayCard() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
 
@@ -193,7 +193,7 @@ class GameModelTest {
   @Test
   void testGameOver() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer1", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
     Player winner = null;
     List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);

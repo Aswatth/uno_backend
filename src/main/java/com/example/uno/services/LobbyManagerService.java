@@ -6,12 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import repos.LobbyRepo;
+import repos.PlayerLobbyRepo;
+import repos.PlayerRepo;
 
 /**
  * An implementation of IGameService interface.
@@ -19,25 +21,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class LobbyManagerService implements ILobbyManagerService {
 
-
   @Autowired
   SimpMessagingTemplate simpMessagingTemplate;
 
-  @Autowired
-  IPlayerService playerService;
-
-  private final ConcurrentHashMap<String, Lobby> lobbyMap;
   private final Map<String, Map<String, Object>> lobbyList;
-  private final Map<String, String> playerGameMap;
+
+  private PlayerRepo playerRepo;
+  private LobbyRepo lobbyRepo;
+  private PlayerLobbyRepo playerLobbyRepo;
 
   public LobbyManagerService() {
-    lobbyMap = new ConcurrentHashMap<>();
     lobbyList = new HashMap<>();
-    playerGameMap = new HashMap<>();
+
+    playerRepo = PlayerRepo.getInstance();
+    lobbyRepo = LobbyRepo.getInstance();
+    playerLobbyRepo = PlayerLobbyRepo.getInstance();
   }
 
   private void broadcast() {
-    for (String playerSessionId : playerService.getPlayerSessionIdList()) {
+    for (String playerSessionId : playerRepo.getAllKeys()) {
       SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(
           SimpMessageType.MESSAGE);
       headerAccessor.setSessionId(playerSessionId);
@@ -56,7 +58,7 @@ public class LobbyManagerService implements ILobbyManagerService {
 
     Lobby lobby = new Lobby(gameId, gameName, minPlayers);
 
-    lobbyMap.put(gameId, lobby);
+    lobbyRepo.add(gameId, lobby);
 
     return gameId;
   }
@@ -69,13 +71,13 @@ public class LobbyManagerService implements ILobbyManagerService {
 
   @Override
   public void joinLobby(String gameId, String playerSessionId) {
-    Lobby lobby = lobbyMap.get(gameId);
+    Lobby lobby = lobbyRepo.get(gameId);
 
-    Player player = playerService.getPlayer(playerSessionId);
+    Player player = playerRepo.get(playerSessionId);
 
     lobby.addPlayer(player);
-    playerGameMap.put(playerSessionId, gameId);
-    lobbyMap.put(gameId, lobby);
+    playerLobbyRepo.add(playerSessionId, gameId);
+    lobbyRepo.add(gameId, lobby);
 
     lobbyList.put(gameId, lobby.toMap());
 
@@ -98,21 +100,21 @@ public class LobbyManagerService implements ILobbyManagerService {
 
   @Override
   public void leaveLobby(String playerSessionId) {
-    String gameId = playerGameMap.get(playerSessionId);
+    String gameId = playerLobbyRepo.get(playerSessionId);
     if (gameId != null) {
 
-      Lobby lobby = lobbyMap.computeIfPresent(gameId, (key, lobbyValue) -> {
-        Player player = playerService.getPlayer(playerSessionId);
+      Lobby lobby = lobbyRepo.getEntries().computeIfPresent(gameId, (key, lobbyValue) -> {
+        Player player = playerRepo.get(playerSessionId);
         lobbyValue.removePlayer(player);
         return lobbyValue;
       });
 
-      playerGameMap.remove(playerSessionId);
+      playerLobbyRepo.remove(playerSessionId);
 
       assert lobby != null;
 
       if (lobby.getCurrentPlayers().isEmpty()) {
-        lobbyMap.remove(gameId);
+        lobbyRepo.remove(gameId);
         lobbyList.remove(gameId);
       } else {
         // Assign next player as host

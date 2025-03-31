@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.uno.models.ConnectionData;
 import com.example.uno.models.Player;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +16,11 @@ class PlayerServiceTest {
 
   @InjectMocks
   PlayerService playerService;
+
+  @AfterEach
+  void cleanup() {
+    playerService.getPlayerSessionIdList().forEach(f -> playerService.removePlayer(f));
+  }
 
   @Test
   void contextLoad() {
@@ -29,16 +35,11 @@ class PlayerServiceTest {
 
     playerService.addPlayer(sessionId, playerName, connectionData);
 
-    Player player = playerService.getPlayer("123");
-
-    assertThat(player).isNotNull();
+    Player player = playerService.getPlayer(sessionId);
 
     assertThat(player.getSessionId()).isEqualTo(sessionId);
     assertThat(player.getName()).isEqualTo(playerName);
-
-    assertThat(player.getConnectionData().ipAddress()).isEqualTo(connectionData.ipAddress());
-    assertThat(player.getConnectionData().port()).isEqualTo(connectionData.port());
-
+    assertThat(player.getConnectionData()).isEqualTo(connectionData);
   }
 
   @Test
@@ -51,7 +52,7 @@ class PlayerServiceTest {
 
     playerService.removePlayer(sessionId);
 
-    Player player = playerService.getPlayer("123");
+    Player player = playerService.getPlayer(sessionId);
 
     assertThat(player).isNull();
   }

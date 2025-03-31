@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,9 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
+import repos.LobbyRepo;
+import repos.PlayerLobbyRepo;
+import repos.PlayerRepo;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +69,14 @@ class ITLobbyManagerControllerTest {
   void setup() {
     blockingQueue = new LinkedBlockingDeque<>();
     stompClient = new WebSocketStompClient(new StandardWebSocketClient());
+  }
+
+  @AfterEach
+  void cleanup() {
+    LobbyRepo.getInstance().getAllKeys().forEach(f -> LobbyRepo.getInstance().remove(f));
+    PlayerRepo.getInstance().getAllKeys().forEach(f -> PlayerRepo.getInstance().remove(f));
+    PlayerLobbyRepo.getInstance().getAllKeys()
+        .forEach(f -> PlayerLobbyRepo.getInstance().remove(f));
   }
 
   @Test

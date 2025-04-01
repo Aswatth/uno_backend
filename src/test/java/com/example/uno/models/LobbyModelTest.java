@@ -49,14 +49,21 @@ class LobbyModelTest {
     Map<String, Object> map = lobby.toMap();
 
     assertThat(map).containsEntry("gameId", gameId).containsEntry("gameName", gameName)
-        .containsEntry("currentPlayers",
-            List.of(Map.ofEntries(
-                Map.entry("playerName", player1.getName()),
-                Map.entry("status", true)
-            ), Map.ofEntries(
-                Map.entry("playerName", player2.getName()),
-                Map.entry("status", false)
-            )));
+        .containsKey("currentPlayers");
+
+    List<Map<String, Object>> currentPlayerData = List.of(Map.ofEntries(
+        Map.entry("playerName", player1.getName()),
+        Map.entry("status", true)
+    ), Map.ofEntries(
+        Map.entry("playerName", player2.getName()),
+        Map.entry("status", false)
+    ));
+
+    assertThat(currentPlayerData.getFirst()).containsEntry("playerName", player1.getName());
+    assertThat(currentPlayerData.getFirst()).containsEntry("status", true);
+
+    assertThat(currentPlayerData.getLast()).containsEntry("playerName", player2.getName());
+    assertThat(currentPlayerData.getLast()).containsEntry("status", false);
   }
 
   @Test

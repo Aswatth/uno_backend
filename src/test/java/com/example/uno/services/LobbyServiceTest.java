@@ -48,6 +48,7 @@ class LobbyServiceTest {
         Map.ofEntries(
             Map.entry("gameName", lobby.getGameName()),
             Map.entry("gameId", lobby.getGameId()),
+            Map.entry("minPlayers", lobby.getMinPlayers()),
             Map.entry("currentPlayers", List.of(Map.ofEntries(
                 Map.entry("playerName", player.getName()),
                 Map.entry("status", true)

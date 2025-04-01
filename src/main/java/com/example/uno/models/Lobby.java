@@ -96,6 +96,7 @@ public class Lobby {
 
     map.put("gameId", gameId);
     map.put("gameName", gameName);
+    map.put("minPlayers", minPlayers);
 
     List<Map<String, Object>> playerInfoList = new ArrayList<>();
 

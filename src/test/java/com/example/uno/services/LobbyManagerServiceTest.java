@@ -79,6 +79,7 @@ class LobbyManagerServiceTest {
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
                 Map.entry("currentPlayers", Collections.singletonList(
                     Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
                         Map.entry("status", true))))
@@ -89,6 +90,7 @@ class LobbyManagerServiceTest {
             Collections.singletonList(Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
                 Map.entry("currentPlayers", Collections.singletonList(
                     Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
                         Map.entry("status", true))))
@@ -140,13 +142,15 @@ class LobbyManagerServiceTest {
     Map<String, Object> expectedPlayer1Payload = Map.ofEntries(
         Map.entry("gameId", gameId),
         Map.entry("gameName", gameName),
+        Map.entry("minPlayers", minPlayers),
         Map.entry("currentPlayers", Collections.singletonList(
             Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
                 Map.entry("status", true))))
     );
     Map<String, Object> actualPlayer1Payload = argumentCaptor.getValue();
     assertThat(actualPlayer1Payload).containsKey("gameId").containsValue(gameId)
-        .containsKey("gameName").containsValue(gameName).containsKey("currentPlayers");
+        .containsKey("gameName").containsEntry("minPlayers", minPlayers).containsValue(gameName)
+        .containsKey("currentPlayers");
 
     assertThat(new HashSet<>(
         (List<Map<String, Object>>) actualPlayer1Payload.get("currentPlayers"))).isEqualTo(
@@ -158,6 +162,7 @@ class LobbyManagerServiceTest {
             Collections.singletonList(Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
                 Map.entry("currentPlayers", Collections.singletonList(
                     Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
                         Map.entry("status", true))))
@@ -185,6 +190,7 @@ class LobbyManagerServiceTest {
     Map<String, Object> expectedPlayer2Payload = Map.ofEntries(
         Map.entry("gameId", gameId),
         Map.entry("gameName", gameName),
+        Map.entry("minPlayers", minPlayers),
         Map.entry("currentPlayers",
             Arrays.asList(Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
                     Map.entry("status", true)),
@@ -194,7 +200,8 @@ class LobbyManagerServiceTest {
 
     Map<String, Object> actualPlayer2Payload = argumentCaptor.getValue();
     assertThat(actualPlayer2Payload).containsKey("gameId").containsValue(gameId)
-        .containsKey("gameName").containsValue(gameName).containsKey("currentPlayers");
+        .containsKey("gameName").containsEntry("minPlayers", minPlayers).containsValue(gameName)
+        .containsKey("currentPlayers");
 
     assertThat(new HashSet<>(
         (List<Map<String, Object>>) actualPlayer2Payload.get("currentPlayers"))).isEqualTo(
@@ -213,6 +220,7 @@ class LobbyManagerServiceTest {
         Map.ofEntries(
             Map.entry("gameId", gameId),
             Map.entry("gameName", gameName),
+            Map.entry("minPlayers", minPlayers),
             Map.entry("currentPlayers",
                 Arrays.asList(Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
                         Map.entry("status", true)),
@@ -222,10 +230,9 @@ class LobbyManagerServiceTest {
 
     List<Map<String, Object>> actualPlayer1BrowseGamesPayload = listArgumentCaptor.getValue();
     assertThat(actualPlayer1BrowseGamesPayload).hasSize(1);
-    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsKey("gameId")
-        .containsValue(gameId);
-    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsKey("gameName")
-        .containsValue(gameName);
+    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsEntry("gameId", gameId);
+    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsEntry("gameName", gameName);
+    assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsEntry("minPlayers", minPlayers);
     assertThat(actualPlayer1BrowseGamesPayload.getFirst()).containsKey("currentPlayers");
 
     assertThat(new HashSet<>(
@@ -245,6 +252,7 @@ class LobbyManagerServiceTest {
         Map.ofEntries(
             Map.entry("gameId", gameId),
             Map.entry("gameName", gameName),
+            Map.entry("minPlayers", minPlayers),
             Map.entry("currentPlayers",
                 Arrays.asList(Map.ofEntries(Map.entry("playerName", mockPlayer1.getName()),
                         Map.entry("status", true)),
@@ -254,10 +262,9 @@ class LobbyManagerServiceTest {
 
     List<Map<String, Object>> actualPlayer2BrowseGamesPayload = listArgumentCaptor.getValue();
     assertThat(actualPlayer2BrowseGamesPayload).hasSize(1);
-    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsKey("gameId")
-        .containsValue(gameId);
-    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsKey("gameName")
-        .containsValue(gameName);
+    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsEntry("gameId", gameId);
+    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsEntry("gameName", gameName);
+    assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsEntry("minPlayers", minPlayers);
     assertThat(actualPlayer2BrowseGamesPayload.getFirst()).containsKey("currentPlayers");
 
     assertThat(new HashSet<>(
@@ -299,6 +306,7 @@ class LobbyManagerServiceTest {
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
                 Map.entry("currentPlayers", Collections.singletonList(
                     Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
                         Map.entry("status", true))))
@@ -309,6 +317,7 @@ class LobbyManagerServiceTest {
             Collections.singletonList(Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
                 Map.entry("currentPlayers", Collections.singletonList(
                     Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
                         Map.entry("status", true))))
@@ -373,6 +382,7 @@ class LobbyManagerServiceTest {
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
                 Map.entry("currentPlayers",
                     Collections.singletonList(
                         Map.ofEntries(Map.entry("playerName", mockPlayer2.getName()),
@@ -385,6 +395,7 @@ class LobbyManagerServiceTest {
             Collections.singletonList(Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
                 Map.entry("currentPlayers",
                     Collections.singletonList(
                         Map.ofEntries(Map.entry("playerName", mockPlayer2.getName()),
@@ -411,6 +422,7 @@ class LobbyManagerServiceTest {
     assertThat(gameList).hasSize(1);
     assertThat(gameList.getFirst()).containsEntry("gameId", gameId);
     assertThat(gameList.getFirst()).containsEntry("gameName", gameName);
+    assertThat(gameList.getFirst()).containsEntry("minPlayers", minPlayers);
 
     assertThat(gameList.getFirst()).containsEntry("currentPlayers",
         Collections.singletonList(Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),

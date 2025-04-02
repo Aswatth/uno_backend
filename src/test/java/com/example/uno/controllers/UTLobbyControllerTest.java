@@ -46,4 +46,14 @@ class UTLobbyControllerTest {
     Mockito.verify(lobbyService).setStatus(playerSessionId, gameId, payload.get("status"));
   }
 
+  @Test
+  void testStartGame() {
+    String gameId = "g123";
+
+    Mockito.doNothing().when(lobbyService).startGame(gameId);
+
+    lobbyController.startGame(gameId);
+
+    Mockito.verify(lobbyService).startGame(gameId);
+  }
 }

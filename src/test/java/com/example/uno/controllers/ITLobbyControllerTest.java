@@ -91,4 +91,51 @@ class ITLobbyControllerTest {
           .setStatus(Mockito.anyString(), Mockito.eq(gameId), Mockito.eq(payload.get("status")));
     });
   }
+
+  @Test
+  void testSetStatusFalse() throws Exception {
+    String gameId = "g123";
+    Map<String, Boolean> payload = Map.of("status", false);
+
+    Mockito.doNothing().when(lobbyService)
+        .setStatus(Mockito.anyString(), Mockito.eq(gameId), Mockito.eq(payload.get("status")));
+
+    StompSession session = stompClient
+        .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
+            new StompSessionHandlerAdapter() {
+            })
+        .get(1, SECONDS);
+    session.subscribe("/topic/lobby/" + gameId + "/status",
+        new ITLobbyControllerTest.DefaultStompFrameHandler());
+
+    session.send("/app/lobby/" + gameId + "/status", new ObjectMapper().writeValueAsBytes(payload));
+
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+      Mockito.verify(lobbyService)
+          .setStatus(Mockito.anyString(), Mockito.eq(gameId), Mockito.eq(payload.get("status")));
+    });
+  }
+
+  @Test
+  void testStartGame() throws Exception {
+    String gameId = "g123";
+
+    Mockito.doNothing().when(lobbyService)
+        .startGame(gameId);
+
+    StompSession session = stompClient
+        .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
+            new StompSessionHandlerAdapter() {
+            })
+        .get(1, SECONDS);
+    session.subscribe("/user/queue/game/" + gameId,
+        new ITLobbyControllerTest.DefaultStompFrameHandler());
+
+    session.send("/app/lobby/" + gameId + "/start", new ObjectMapper().writeValueAsBytes(""));
+
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+      Mockito.verify(lobbyService)
+          .startGame(gameId);
+    });
+  }
 }

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 /**
  * A model defining game attributes.
@@ -74,13 +75,13 @@ public class Game {
       this.playerCardList.put(player, cardsToDeal);
     }
 
-    Collections.shuffle(this.currentPlayers);
-    this.currentPlayerIndex = 0;
+    Random random = new Random();
+    this.currentPlayerIndex = random.nextInt(this.currentPlayers.size());
 
     Card card = this.drawPile.getFirst();
     this.drawPile.removeFirst();
 
-    while (card.cardColor() != Color.WILD && card.cardValue() != Value.DRAW4) {
+    while (card.cardColor() == Color.WILD && card.cardValue() == Value.DRAW4) {
       this.drawPile.add(card);
 
       card = this.drawPile.getFirst();
@@ -102,7 +103,7 @@ public class Game {
         break;
     }
 
-    this.drawPile.add(card);
+    this.discardPile.add(card);
 
     return playerCardList;
   }

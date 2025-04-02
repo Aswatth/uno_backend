@@ -20,4 +20,8 @@ public class LobbyController {
     lobbyService.setStatus(sessionId, gameId, payload.get("status"));
   }
 
+  @MessageMapping("/lobby/{gameId}/start")
+  public void startGame(@DestinationVariable String gameId) {
+    lobbyService.startGame(gameId);
+  }
 }

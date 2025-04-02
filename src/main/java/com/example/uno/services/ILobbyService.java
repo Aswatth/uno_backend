@@ -6,4 +6,5 @@ package com.example.uno.services;
 public interface ILobbyService {
 
   void setStatus(String playerSessionId, String gameId, boolean readyStatus);
+  void startGame(String gameId);
 }

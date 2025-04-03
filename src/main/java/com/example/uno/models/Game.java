@@ -97,8 +97,8 @@ public class Game {
         pass();
         break;
       case DRAW2:
-        pass();
         draw(2);
+        pass();
         break;
       default:
         break;

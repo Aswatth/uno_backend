@@ -16,46 +16,32 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import repos.GameRepo;
 import repos.LobbyRepo;
-import repos.PlayerRepo;
 
 @Service
-public class LobbyService implements ILobbyService {
+public class GameService implements IGameService {
 
-  private PlayerRepo playerRepo;
-  private LobbyRepo lobbyRepo;
   private GameRepo gameRepo;
+
+  private LobbyRepo lobbyRepo;
 
   @Autowired
   SimpMessagingTemplate simpMessagingTemplate;
 
-  public LobbyService() {
-    this.playerRepo = PlayerRepo.getInstance();
-    this.lobbyRepo = LobbyRepo.getInstance();
+  public GameService() {
     this.gameRepo = GameRepo.getInstance();
+    this.lobbyRepo = LobbyRepo.getInstance();
   }
 
   @Override
-  public void setStatus(String playerSessionId, String gameId, boolean readyStatus) {
-    Player player = playerRepo.get(playerSessionId);
+  public void play(String gameId, Card card) {
+    Game game = gameRepo.get(gameId);
+
+    game.play(card);
+
+    gameRepo.add(gameId, game);
+
     Lobby lobby = lobbyRepo.get(gameId);
-
-    lobby.setPlayerStatus(player, readyStatus);
-
-    lobbyRepo.add(lobby.getGameId(), lobby);
-
-    simpMessagingTemplate.convertAndSend(
-        "/topic/lobby/" + gameId, lobby.toMap());
-  }
-
-  @Override
-  public void startGame(String gameId) {
-    Lobby lobby = this.lobbyRepo.get(gameId);
     List<Player> playerList = lobby.getCurrentPlayers();
-    Game game = new Game(playerList);
-
-    Map<Player, List<Card>> playerCardMap = game.dealCards();
-
-    this.gameRepo.add(lobby.getGameId(), game);
 
     for (Player player : playerList) {
       // Set current player info
@@ -64,7 +50,7 @@ public class LobbyService implements ILobbyService {
       payload.put("isWinner", winner != null && winner.getSessionId().
           equals(player.getSessionId()));
       payload.put("isMyTurn", game.getCurrentPlayer().getSessionId().equals(player.getSessionId()));
-      payload.put("cards", playerCardMap.get(player));
+      payload.put("cards", game.getCards(player));
       payload.put("topCard", game.getTopCard());
 
       // Setting other players info
@@ -79,7 +65,7 @@ public class LobbyService implements ILobbyService {
                   equals(otherPlayer.getSessionId()));
           othersPlayerInfo.put("isMyTurn",
               game.getCurrentPlayer().getSessionId().equals(otherPlayer.getSessionId()));
-          othersPlayerInfo.put("cardCount", playerCardMap.get(otherPlayer).size());
+          othersPlayerInfo.put("cardCount", game.getCards(otherPlayer).size());
 
           otherPlayerInfoList.add(othersPlayerInfo);
         }
@@ -94,6 +80,5 @@ public class LobbyService implements ILobbyService {
       simpMessagingTemplate.convertAndSendToUser(player.getSessionId(),
           "/queue/game/" + gameId, payload, simpMessageHeaderAccessor.getMessageHeaders());
     }
-
   }
 }

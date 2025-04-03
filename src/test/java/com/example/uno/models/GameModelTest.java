@@ -71,6 +71,35 @@ class GameModelTest {
   }
 
   @Test
+  void testPlayReverseCard() {
+    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
+    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
+    Player testPlayer3 = new Player("3", "testPlayer3", new ConnectionData("0.0.0.0", 3));
+
+    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2, testPlayer3);
+
+    Game game = new Game(playerList);
+
+    game.dealCards();
+
+    Player currentPlayer = game.getCurrentPlayer();
+
+    Player nextPlayerAfterReverse = switch (currentPlayer.getSessionId()) {
+      case "1" -> testPlayer3;
+      case "2" -> testPlayer1;
+      case "3" -> testPlayer2;
+      default -> null;
+    };
+
+    Card redReverseCard = new Card(Color.RED, Value.REVERSE);
+
+    game.play(redReverseCard);
+
+    assertThat(game.getTopCard()).isEqualTo(redReverseCard);
+    assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayerAfterReverse);
+  }
+
+  @Test
   void testPlaySkipCard() {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
@@ -83,8 +112,11 @@ class GameModelTest {
 
     Player currentPlayer = game.getCurrentPlayer();
 
-    game.play(new Card(Color.RED, Value.SKIP));
+    Card redSkipCard = new Card(Color.RED, Value.SKIP);
 
+    game.play(redSkipCard);
+
+    assertThat(game.getTopCard()).isEqualTo(redSkipCard);
     assertThat(game.getCurrentPlayer()).isEqualTo(currentPlayer);
   }
 
@@ -102,8 +134,11 @@ class GameModelTest {
     Player currentPlayer = game.getCurrentPlayer();
     Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
 
-    game.play(new Card(Color.RED, Value.DRAW2));
+    Card redDraw2Card = new Card(Color.RED, Value.DRAW2);
 
+    game.play(redDraw2Card);
+
+    assertThat(game.getTopCard()).isEqualTo(redDraw2Card);
     assertThat(game.getCurrentPlayer()).isEqualTo(currentPlayer);
     assertThat(game.getCards(nextPlayer)).hasSize(9);
   }
@@ -122,8 +157,11 @@ class GameModelTest {
     Player currentPlayer = game.getCurrentPlayer();
     Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
 
-    game.play(new Card(Color.RED, Value.DRAW4));
+    Card redDraw4Card = new Card(Color.RED, Value.DRAW4);
 
+    game.play(redDraw4Card);
+
+    assertThat(game.getTopCard()).isEqualTo(redDraw4Card);
     assertThat(game.getCurrentPlayer()).isEqualTo(currentPlayer);
     assertThat(game.getCards(nextPlayer)).hasSize(11);
   }
@@ -142,8 +180,10 @@ class GameModelTest {
     Player currentPlayer = game.getCurrentPlayer();
     Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
 
-    game.play(new Card(Color.RED, Value.WILD));
+    Card wildRedCard = new Card(Color.RED, Value.WILD);
+    game.play(wildRedCard);
 
+    assertThat(game.getTopCard()).isEqualTo(wildRedCard);
     assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayer);
     assertThat(game.getCards(nextPlayer)).hasSize(7);
   }
@@ -153,21 +193,21 @@ class GameModelTest {
     Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
     Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
 
-    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2);
-
-    Game game = new Game(playerList);
+    Game game = new Game(Arrays.asList(testPlayer1, testPlayer2));
 
     game.dealCards();
 
     Player currentPlayer = game.getCurrentPlayer();
     Card cardToPLay = game.getCards(currentPlayer).stream()
-        .filter(f -> f.cardValue() != Value.DRAW2 && f.cardValue() != Value.DRAW4).findFirst()
+        .filter(f -> f.cardValue() != Value.DRAW2 && f.cardValue() != Value.DRAW4
+            && f.cardValue() != Value.SKIP).findFirst()
         .get();
 
     Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
 
     game.play(cardToPLay);
 
+    assertThat(game.getTopCard()).isEqualTo(cardToPLay);
     assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayer);
     assertThat(game.getCards(nextPlayer)).hasSize(7);
     assertThat(game.getCards(currentPlayer)).hasSize(6);

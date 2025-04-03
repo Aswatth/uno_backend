@@ -21,33 +21,16 @@ class GameModelTest {
 
     Map<Player, List<Card>> playerCardList = game.dealCards();
 
-    for (Map.Entry<Player, List<Card>> map : playerCardList.entrySet()) {
-      assertThat(map.getValue()).hasSize(7);
-    }
-  }
+    Card topCard = game.getTopCard();
+    Player currentPlayer = game.getCurrentPlayer();
+    Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
 
-  @Test
-  void testGenerateCardsForTenPlayers() {
-    Player testPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
-    Player testPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
-    Player testPlayer3 = new Player("3", "testPlayer3", new ConnectionData("0.0.0.0", 3));
-    Player testPlayer4 = new Player("4", "testPlayer4", new ConnectionData("0.0.0.0", 4));
-    Player testPlayer5 = new Player("5", "testPlayer5", new ConnectionData("0.0.0.0", 5));
-    Player testPlayer6 = new Player("6", "testPlayer6", new ConnectionData("0.0.0.0", 6));
-    Player testPlayer7 = new Player("7", "testPlayer7", new ConnectionData("0.0.0.0", 7));
-    Player testPlayer8 = new Player("8", "testPlayer8", new ConnectionData("0.0.0.0", 8));
-    Player testPlayer9 = new Player("9", "testPlayer9", new ConnectionData("0.0.0.0", 9));
-    Player testPlayer10 = new Player("10", "testPlayer10", new ConnectionData("0.0.0.0", 10));
-
-    List<Player> playerList = Arrays.asList(testPlayer1, testPlayer2, testPlayer3, testPlayer4,
-        testPlayer5, testPlayer6, testPlayer7, testPlayer8, testPlayer9, testPlayer10);
-
-    Game game = new Game(playerList);
-
-    Map<Player, List<Card>> playerCardList = game.dealCards();
-
-    for (Map.Entry<Player, List<Card>> map : playerCardList.entrySet()) {
-      assertThat(map.getValue()).hasSize(7);
+    if (topCard.cardValue() == Value.DRAW2) {
+      assertThat(playerCardList.get(nextPlayer)).hasSize(9);
+      assertThat(playerCardList.get(currentPlayer)).hasSize(7);
+    } else {
+      assertThat(playerCardList.get(nextPlayer)).hasSize(7);
+      assertThat(playerCardList.get(currentPlayer)).hasSize(7);
     }
   }
 

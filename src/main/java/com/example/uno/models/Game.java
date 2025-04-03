@@ -23,6 +23,7 @@ public class Game {
   private int currentPlayerIndex;
   private int direction = 1;
   private Player winner;
+  private final Random random;
 
   public Game(List<Player> currentPlayers) {
     this.currentPlayers = currentPlayers;
@@ -31,6 +32,8 @@ public class Game {
     this.discardPile = new ArrayList<>();
     this.drawPile = new ArrayList<>();
     this.playerCardList = new HashMap<>();
+
+    this.random = new Random();
     initializeCards();
   }
 
@@ -74,9 +77,7 @@ public class Game {
 
       this.playerCardList.put(player, cardsToDeal);
     }
-
-    Random random = new Random();
-    this.currentPlayerIndex = random.nextInt(this.currentPlayers.size());
+    this.currentPlayerIndex = this.random.nextInt(this.currentPlayers.size());
 
     Card card = this.drawPile.getFirst();
     this.drawPile.removeFirst();

@@ -49,9 +49,7 @@ class LobbyModelTest {
     Map<String, Object> map = lobby.toMap();
 
     assertThat(map).containsEntry("gameId", gameId).containsEntry("gameName", gameName)
-        .containsKey("currentPlayers");
-
-    assertThat(map).containsEntry("minPlayers", minPlayers);
+        .containsKey("currentPlayers").containsEntry("minPlayers", minPlayers);
 
     List<Map<String, Object>> currentPlayerData = List.of(Map.ofEntries(
         Map.entry("playerName", player1.getName()),

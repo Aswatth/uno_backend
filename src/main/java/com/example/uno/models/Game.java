@@ -131,8 +131,14 @@ public class Game {
 
     for (int i = 1; i <= drawCount; ++i) {
       if (this.drawPile.isEmpty()) {
+        Card topCard = this.getTopCard();
         this.drawPile = new ArrayList<>(this.discardPile);
         this.discardPile.clear();
+
+        if(topCard.cardValue() == Value.DRAW4 || topCard.cardValue() == Value.WILD) {
+          topCard = new Card(Color.WILD, topCard.cardValue());
+        }
+        this.discardPile.add(topCard);
 
         Collections.shuffle(drawPile);
       }

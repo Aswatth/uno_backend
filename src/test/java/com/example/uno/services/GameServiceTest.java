@@ -74,7 +74,51 @@ class GameServiceTest {
 
     Map<String, Object> actualPayload = payloadCaptor.getValue();
     assertThat(actualPayload).containsKey("isMyTurn").containsKey("isWinner")
-        .containsEntry("topCard", card)
+        .containsEntry("topCard", game.getTopCard())
+        .containsKey("otherPlayersInfo").containsKey("cards");
+
+    List<Map<String, Object>> actualPayloadOtherPlayerInfo = (List<Map<String, Object>>) actualPayload.get(
+        "otherPlayersInfo");
+    assertThat(actualPayloadOtherPlayerInfo).hasSize(1);
+    assertThat(actualPayloadOtherPlayerInfo.getFirst()).containsKey("isWinner")
+        .containsKey("playerName")
+        .containsKey("isMyTurn").containsKey("cardCount");
+  }
+
+  @Test
+  void testDrawCard() {
+    String gameId = "g123";
+    Lobby lobby = new Lobby(gameId, "testGame", 2);
+
+    Player mockPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
+    Player mockPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
+
+    lobby.addPlayer(mockPlayer1);
+    lobby.addPlayer(mockPlayer2);
+
+    Game game = new Game(List.of(mockPlayer1, mockPlayer2));
+    Map<Player, List<Card>> playCardList = game.dealCards();
+
+    // Mock get game
+    Mockito.when(gameRepo.get(gameId)).thenReturn(game);
+
+    // Mock get Lobby
+    Mockito.when(lobbyRepo.get(gameId)).thenReturn(lobby);
+
+    gameService.drawCard(gameId);
+
+    ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(HashMap.class);
+    ArgumentCaptor<MessageHeaders> messageHeadersArgumentCaptor = ArgumentCaptor.forClass(
+        MessageHeaders.class);
+
+    Mockito.verify(simpMessagingTemplate, Mockito.times(2))
+        .convertAndSendToUser(Mockito.anyString(),
+            Mockito.eq("/queue/game/" + gameId), payloadCaptor.capture(),
+            messageHeadersArgumentCaptor.capture());
+
+    Map<String, Object> actualPayload = payloadCaptor.getValue();
+    assertThat(actualPayload).containsKey("isMyTurn").containsKey("isWinner")
+        .containsEntry("topCard", game.getTopCard())
         .containsKey("otherPlayersInfo").containsKey("cards");
 
     List<Map<String, Object>> actualPayloadOtherPlayerInfo = (List<Map<String, Object>>) actualPayload.get(

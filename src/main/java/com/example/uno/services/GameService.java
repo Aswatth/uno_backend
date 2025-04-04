@@ -32,14 +32,7 @@ public class GameService implements IGameService {
     this.lobbyRepo = LobbyRepo.getInstance();
   }
 
-  @Override
-  public void play(String gameId, Card card) {
-    Game game = gameRepo.get(gameId);
-
-    game.play(card);
-
-    gameRepo.add(gameId, game);
-
+  private void broadcastToPlayers(String gameId, Game game) {
     Lobby lobby = lobbyRepo.get(gameId);
     List<Player> playerList = lobby.getCurrentPlayers();
 
@@ -80,5 +73,27 @@ public class GameService implements IGameService {
       simpMessagingTemplate.convertAndSendToUser(player.getSessionId(),
           "/queue/game/" + gameId, payload, simpMessageHeaderAccessor.getMessageHeaders());
     }
+  }
+
+  @Override
+  public void play(String gameId, Card card) {
+    Game game = gameRepo.get(gameId);
+
+    game.play(card);
+
+    gameRepo.add(gameId, game);
+
+    broadcastToPlayers(gameId, game);
+  }
+
+  @Override
+  public void drawCard(String gameId) {
+    Game game = gameRepo.get(gameId);
+
+    game.draw(1);
+
+    gameRepo.add(gameId, game);
+
+    broadcastToPlayers(gameId, game);
   }
 }

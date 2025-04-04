@@ -21,7 +21,7 @@ class UTGameControllerTest {
   GameController gameController;
 
   @Test
-  void play() {
+  void testPlay() {
     String gameId = "g123";
     Card card = new Card(Color.RED, Value.ONE);
 
@@ -30,5 +30,16 @@ class UTGameControllerTest {
     gameController.play(gameId, card);
 
     Mockito.verify(gameService).play(gameId, card);
+  }
+
+  @Test
+  void testDraw() {
+    String gameId = "g123";
+
+    Mockito.doNothing().when(gameService).drawCard(gameId);
+
+    gameController.drawCard(gameId);
+
+    Mockito.verify(gameService).drawCard(gameId);
   }
 }

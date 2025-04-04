@@ -96,4 +96,25 @@ class ITGameControllerTest {
     });
   }
 
+  @Test
+  void testDraw() throws Exception {
+    String gameId = "g123";
+
+    Mockito.doNothing().when(gameService).drawCard(gameId);
+
+    StompSession session = stompClient
+        .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
+            new StompSessionHandlerAdapter() {
+            })
+        .get(1, SECONDS);
+
+    session.subscribe("/user/queue/game/" + gameId,
+        new ITGameControllerTest.DefaultStompFrameHandler());
+
+    session.send("/app/game/" + gameId + "/draw", new ObjectMapper().writeValueAsBytes(""));
+
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+      Mockito.verify(gameService).drawCard(gameId);
+    });
+  }
 }

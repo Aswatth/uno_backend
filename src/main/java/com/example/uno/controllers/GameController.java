@@ -18,4 +18,9 @@ public class GameController {
     gameService.play(gameId, card);
   }
 
+  @MessageMapping("/game/{gameId}/draw")
+  public void drawCard(@DestinationVariable String gameId) {
+    gameService.drawCard(gameId);
+  }
+
 }

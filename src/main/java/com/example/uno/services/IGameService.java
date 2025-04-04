@@ -6,4 +6,6 @@ public interface IGameService {
 
   void play(String gameId, Card card);
 
+  void drawCard(String gameId);
+
 }

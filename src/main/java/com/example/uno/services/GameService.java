@@ -96,4 +96,15 @@ public class GameService implements IGameService {
 
     broadcastToPlayers(gameId, game);
   }
+
+  @Override
+  public void endTurn(String gameId) {
+    Game game = gameRepo.get(gameId);
+
+    game.pass();
+
+    gameRepo.add(gameId, game);
+
+    broadcastToPlayers(gameId, game);
+  }
 }

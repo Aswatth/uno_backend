@@ -8,4 +8,6 @@ public interface IGameService {
 
   void drawCard(String gameId);
 
+  void endTurn(String gameId);
+
 }

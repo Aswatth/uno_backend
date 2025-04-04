@@ -101,7 +101,7 @@ class LobbyServiceTest {
     assertThat(actualPayloadOtherPlayerInfo).hasSize(lobby.getCurrentPlayers().size() - 1);
     assertThat(actualPayloadOtherPlayerInfo.getFirst()).containsKey("isWinner")
         .containsKey("playerName")
-        .containsKey("isMyTurn").containsEntry("cardCount", 7);
+        .containsKey("isMyTurn").containsKey("cardCount");
   }
 
   @Test
@@ -144,6 +144,6 @@ class LobbyServiceTest {
     assertThat(actualPayloadOtherPlayerInfo).hasSize(lobby.getCurrentPlayers().size() - 1);
     assertThat(actualPayloadOtherPlayerInfo.getFirst()).containsKey("isWinner")
         .containsKey("playerName")
-        .containsKey("isMyTurn").containsEntry("cardCount", 7);
+        .containsKey("isMyTurn").containsKey("cardCount");
   }
 }

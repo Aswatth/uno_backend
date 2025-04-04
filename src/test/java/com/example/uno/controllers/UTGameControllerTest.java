@@ -42,4 +42,15 @@ class UTGameControllerTest {
 
     Mockito.verify(gameService).drawCard(gameId);
   }
+
+  @Test
+  void testEndTurn() {
+    String gameId = "g123";
+
+    Mockito.doNothing().when(gameService).endTurn(gameId);
+
+    gameController.endTurn(gameId);
+
+    Mockito.verify(gameService).endTurn(gameId);
+  }
 }

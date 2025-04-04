@@ -23,4 +23,9 @@ public class GameController {
     gameService.drawCard(gameId);
   }
 
+  @MessageMapping("/game/{gameId}/endTurn")
+  public void endTurn(@DestinationVariable String gameId) {
+    gameService.endTurn(gameId);
+  }
+
 }

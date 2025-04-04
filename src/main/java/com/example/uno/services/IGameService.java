@@ -10,4 +10,6 @@ public interface IGameService {
 
   void endTurn(String gameId);
 
+  void replay(String gameId);
+
 }

@@ -107,4 +107,17 @@ public class GameService implements IGameService {
 
     broadcastToPlayers(gameId, game);
   }
+
+  @Override
+  public void replay(String gameId) {
+    Lobby lobby = lobbyRepo.get(gameId);
+
+    for (Player player : lobby.getCurrentPlayers()) {
+      lobby.setPlayerStatus(player, false);
+    }
+
+    gameRepo.remove(gameId);
+
+    simpMessagingTemplate.convertAndSend("/topic/lobby/" + gameId, lobby.toMap());
+  }
 }

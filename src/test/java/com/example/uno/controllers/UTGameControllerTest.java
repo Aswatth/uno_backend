@@ -53,4 +53,15 @@ class UTGameControllerTest {
 
     Mockito.verify(gameService).endTurn(gameId);
   }
+
+  @Test
+  void testReplay() {
+    String gameId = "g123";
+
+    Mockito.doNothing().when(gameService).replay(gameId);
+
+    gameController.replay(gameId);
+
+    Mockito.verify(gameService).replay(gameId);
+  }
 }

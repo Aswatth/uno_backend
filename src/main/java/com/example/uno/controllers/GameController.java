@@ -28,4 +28,9 @@ public class GameController {
     gameService.endTurn(gameId);
   }
 
+  @MessageMapping("/game/{gameId}/replay")
+  public void replay(@DestinationVariable String gameId) {
+    gameService.replay(gameId);
+  }
+
 }

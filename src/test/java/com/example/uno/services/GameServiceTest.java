@@ -172,4 +172,27 @@ class GameServiceTest {
         .containsKey("playerName")
         .containsKey("isMyTurn").containsKey("cardCount");
   }
+
+  @Test
+  void testReplay() {
+    String gameId = "g123";
+    Lobby lobby = new Lobby(gameId, "testGame", 2);
+
+    Player mockPlayer1 = new Player("1", "testPlayer1", new ConnectionData("0.0.0.0", 1));
+    Player mockPlayer2 = new Player("2", "testPlayer2", new ConnectionData("0.0.0.0", 2));
+
+    lobby.addPlayer(mockPlayer1);
+    lobby.addPlayer(mockPlayer2);
+
+    Game game = new Game(List.of(mockPlayer1, mockPlayer2));
+    game.dealCards();
+
+    // Mock get Lobby
+    Mockito.when(lobbyRepo.get(gameId)).thenReturn(lobby);
+
+    gameService.replay(gameId);
+
+    Mockito.verify(simpMessagingTemplate)
+        .convertAndSend("/topic/lobby/" + gameId, lobby.toMap());
+  }
 }

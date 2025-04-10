@@ -21,11 +21,10 @@ class GameModelTest {
 
     Map<Player, List<Card>> playerCardList = game.dealCards();
 
-    Card topCard = game.getTopCard();
     Player currentPlayer = game.getCurrentPlayer();
     Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
 
-    if (topCard.cardValue() == Value.DRAW2) {
+    if (game.getTopCard().cardValue() == Value.DRAW2) {
       assertThat(playerCardList.get(nextPlayer)).hasSize(9);
       assertThat(playerCardList.get(currentPlayer)).hasSize(7);
     } else {
@@ -140,7 +139,12 @@ class GameModelTest {
 
     assertThat(game.getTopCard()).isEqualTo(redDraw2Card);
     assertThat(game.getCurrentPlayer()).isEqualTo(currentPlayer);
-    assertThat(game.getCards(nextPlayer)).hasSize(9);
+
+    if (game.getTopCard().cardValue() == Value.DRAW2) {
+      assertThat(game.getCards(nextPlayer)).hasSize(9);
+    } else {
+      assertThat(game.getCards(nextPlayer)).hasSize(11);
+    }
   }
 
   @Test
@@ -163,7 +167,13 @@ class GameModelTest {
 
     assertThat(game.getTopCard()).isEqualTo(redDraw4Card);
     assertThat(game.getCurrentPlayer()).isEqualTo(currentPlayer);
-    assertThat(game.getCards(nextPlayer)).hasSize(11);
+
+    if (game.getTopCard().cardValue() == Value.DRAW2) {
+      assertThat(game.getCards(nextPlayer)).hasSize(13);
+    } else {
+      assertThat(game.getCards(nextPlayer)).hasSize(11);
+    }
+
   }
 
   @Test
@@ -185,7 +195,12 @@ class GameModelTest {
 
     assertThat(game.getTopCard()).isEqualTo(wildRedCard);
     assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayer);
-    assertThat(game.getCards(nextPlayer)).hasSize(7);
+
+    if (game.getTopCard().cardValue() == Value.DRAW2) {
+      assertThat(game.getCards(nextPlayer)).hasSize(9);
+    } else {
+      assertThat(game.getCards(nextPlayer)).hasSize(7);
+    }
   }
 
   @Test
@@ -209,7 +224,12 @@ class GameModelTest {
 
     assertThat(game.getTopCard()).isEqualTo(cardToPLay);
     assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayer);
-    assertThat(game.getCards(nextPlayer)).hasSize(7);
+    if (game.getTopCard().cardValue() == Value.DRAW2) {
+      assertThat(game.getCards(nextPlayer)).hasSize(9);
+    } else {
+      assertThat(game.getCards(nextPlayer)).hasSize(7);
+    }
+
     assertThat(game.getCards(currentPlayer)).hasSize(6);
   }
 

@@ -191,6 +191,8 @@ class GameModelTest {
 
     game.dealCards();
 
+    Card topCard = game.getTopCard();
+
     Player currentPlayer = game.getCurrentPlayer();
     Player nextPlayer = currentPlayer == testPlayer1 ? testPlayer2 : testPlayer1;
 
@@ -200,7 +202,7 @@ class GameModelTest {
     assertThat(game.getTopCard()).isEqualTo(wildRedCard);
     assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayer);
 
-    if (game.getTopCard().cardValue() == Value.DRAW2) {
+    if (topCard.cardValue() == Value.DRAW2) {
       assertThat(game.getCards(nextPlayer)).hasSize(9);
     } else {
       assertThat(game.getCards(nextPlayer)).hasSize(7);
@@ -216,6 +218,8 @@ class GameModelTest {
 
     game.dealCards();
 
+    Card topCard = game.getTopCard();
+
     Player currentPlayer = game.getCurrentPlayer();
     Card cardToPLay = game.getCards(currentPlayer).stream()
         .filter(f -> f.cardValue() != Value.DRAW2 && f.cardValue() != Value.DRAW4
@@ -228,7 +232,7 @@ class GameModelTest {
 
     assertThat(game.getTopCard()).isEqualTo(cardToPLay);
     assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayer);
-    if (game.getTopCard().cardValue() == Value.DRAW2) {
+    if (topCard.cardValue() == Value.DRAW2) {
       assertThat(game.getCards(nextPlayer)).hasSize(9);
     } else {
       assertThat(game.getCards(nextPlayer)).hasSize(7);

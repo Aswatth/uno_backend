@@ -81,21 +81,17 @@ class GameModelTest {
 
     game.dealCards();
 
-    Player currentPlayer = game.getCurrentPlayer();
-
-    Player nextPlayerAfterReverse = switch (currentPlayer.getSessionId()) {
-      case "1" -> testPlayer3;
-      case "2" -> testPlayer1;
-      case "3" -> testPlayer2;
-      default -> null;
-    };
+    game.pass();
+    game.pass();
+    Player nextPlayer2 = game.getCurrentPlayer();
+    game.pass();
 
     Card redReverseCard = new Card(Color.RED, Value.REVERSE);
 
     game.play(redReverseCard);
 
     assertThat(game.getTopCard()).isEqualTo(redReverseCard);
-    assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayerAfterReverse);
+    assertThat(game.getCurrentPlayer()).isEqualTo(nextPlayer2);
   }
 
   @Test

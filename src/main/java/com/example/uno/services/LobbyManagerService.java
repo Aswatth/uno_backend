@@ -11,6 +11,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import repos.ChatRepo;
 import repos.LobbyRepo;
 import repos.PlayerLobbyRepo;
 import repos.PlayerRepo;
@@ -29,6 +30,7 @@ public class LobbyManagerService implements ILobbyManagerService {
   private PlayerRepo playerRepo;
   private LobbyRepo lobbyRepo;
   private PlayerLobbyRepo playerLobbyRepo;
+  private ChatRepo chatRepo;
 
   public LobbyManagerService() {
     lobbyList = new HashMap<>();
@@ -36,6 +38,7 @@ public class LobbyManagerService implements ILobbyManagerService {
     playerRepo = PlayerRepo.getInstance();
     lobbyRepo = LobbyRepo.getInstance();
     playerLobbyRepo = PlayerLobbyRepo.getInstance();
+    chatRepo = ChatRepo.getInstance();
   }
 
   private void broadcast() {
@@ -96,6 +99,8 @@ public class LobbyManagerService implements ILobbyManagerService {
 
     // Broadcast updated info to other players browsing games.
     broadcast();
+
+    chatRepo.remove(playerSessionId);
   }
 
   @Override
@@ -135,6 +140,8 @@ public class LobbyManagerService implements ILobbyManagerService {
 
       // Broadcast updated info to other players browsing games.
       broadcast();
+
+      chatRepo.remove(playerSessionId);
     }
   }
 }

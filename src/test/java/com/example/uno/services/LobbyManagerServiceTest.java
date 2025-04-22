@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import repos.ChatRepo;
 import repos.PlayerRepo;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +29,9 @@ class LobbyManagerServiceTest {
 
   @Mock
   PlayerRepo playerRepo;
+
+  @Mock
+  ChatRepo chatRepo;
 
   @Mock
   SimpMessagingTemplate simpMessagingTemplate;
@@ -96,6 +100,8 @@ class LobbyManagerServiceTest {
                         Map.entry("status", true))))
             )),
             headerAccessor.getMessageHeaders());
+
+    Mockito.verify(chatRepo).remove(mockPlayer.getSessionId());
 
     assertThat(lobbyManagerService.browseLobbies()).hasSize(1);
   }
@@ -172,6 +178,8 @@ class LobbyManagerServiceTest {
     Mockito.when(playerRepo.getAllKeys())
         .thenReturn(Arrays.asList(mockPlayer1.getSessionId(),
             mockPlayer2.getSessionId()));
+
+    Mockito.verify(chatRepo).remove(mockPlayer1.getSessionId());
 
     lobbyManagerService.joinLobby(gameId, mockPlayer2.getSessionId());
 
@@ -273,6 +281,8 @@ class LobbyManagerServiceTest {
         new HashSet<>((List<Map<String, Object>>) expectedPlayer2BrowseGamesPayload.getFirst()
             .get("currentPlayers")));
 
+    Mockito.verify(chatRepo).remove(mockPlayer2.getSessionId());
+
     assertThat(lobbyManagerService.browseLobbies()).hasSize(1);
   }
 
@@ -324,12 +334,16 @@ class LobbyManagerServiceTest {
             )),
             headerAccessor.getMessageHeaders());
 
+    Mockito.verify(chatRepo).remove(mockPlayer.getSessionId());
+
     lobbyManagerService.leaveLobby(mockPlayer.getSessionId());
 
     Mockito.verify(simpMessagingTemplate)
         .convertAndSendToUser(mockPlayer.getSessionId(), "/queue/browse-lobbies",
             Collections.emptyList(),
             headerAccessor.getMessageHeaders());
+
+    Mockito.verify(chatRepo, Mockito.times(2)).remove(mockPlayer.getSessionId());
 
     assertThat(lobbyManagerService.browseLobbies()).isEmpty();
   }
@@ -368,6 +382,8 @@ class LobbyManagerServiceTest {
     Mockito.when(playerRepo.getAllKeys())
         .thenReturn(Collections.singletonList(mockPlayer2.getSessionId()));
 
+    Mockito.verify(chatRepo).remove(mockPlayer2.getSessionId());
+
     lobbyManagerService.leaveLobby(mockPlayer1.getSessionId());
 
     // Update party host
@@ -403,6 +419,8 @@ class LobbyManagerServiceTest {
             headerAccessor2.getMessageHeaders());
 
     assertThat(lobbyManagerService.browseLobbies()).hasSize(1);
+
+    Mockito.verify(chatRepo, Mockito.times(2)).remove(mockPlayer1.getSessionId());
   }
 
   @Test

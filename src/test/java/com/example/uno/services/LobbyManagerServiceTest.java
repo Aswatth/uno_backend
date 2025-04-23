@@ -79,7 +79,7 @@ class LobbyManagerServiceTest {
                 getMessageHeaders());
 
     Mockito.verify(simpMessagingTemplate)
-        .convertAndSend("/topic/join-lobby/" + gameId,
+        .convertAndSend("/topic/lobby/" + gameId,
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
@@ -142,7 +142,7 @@ class LobbyManagerServiceTest {
     // Notify party members
     ArgumentCaptor<Map<String, Object>> argumentCaptor = ArgumentCaptor.forClass(HashMap.class);
     Mockito.verify(simpMessagingTemplate)
-        .convertAndSend(Mockito.eq("/topic/join-lobby/" + gameId),
+        .convertAndSend(Mockito.eq("/topic/lobby/" + gameId),
             argumentCaptor.capture());
 
     Map<String, Object> expectedPlayer1Payload = Map.ofEntries(
@@ -192,7 +192,7 @@ class LobbyManagerServiceTest {
     // Notify party members
     argumentCaptor = ArgumentCaptor.forClass(HashMap.class);
     Mockito.verify(simpMessagingTemplate, Mockito.times(2))
-        .convertAndSend(Mockito.eq("/topic/join-lobby/" + gameId), argumentCaptor.capture()
+        .convertAndSend(Mockito.eq("/topic/lobby/" + gameId), argumentCaptor.capture()
         );
 
     Map<String, Object> expectedPlayer2Payload = Map.ofEntries(
@@ -312,7 +312,7 @@ class LobbyManagerServiceTest {
                 getMessageHeaders());
 
     Mockito.verify(simpMessagingTemplate)
-        .convertAndSend("/topic/join-lobby/" + gameId,
+        .convertAndSend("/topic/lobby/" + gameId,
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),
@@ -394,7 +394,7 @@ class LobbyManagerServiceTest {
 
     // Notify party members
     Mockito.verify(simpMessagingTemplate)
-        .convertAndSend("/topic/join-lobby/" + gameId,
+        .convertAndSend("/topic/lobby/" + gameId,
             Map.ofEntries(
                 Map.entry("gameId", gameId),
                 Map.entry("gameName", gameName),

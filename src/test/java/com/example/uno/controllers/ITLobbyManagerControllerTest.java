@@ -47,7 +47,7 @@ class ITLobbyManagerControllerTest {
   WebSocketStompClient stompClient;
 
   @MockitoBean
-  LobbyManagerService gameService;
+  LobbyManagerService lobbyManagerService;
 
   @InjectMocks
   LobbyManagerController lobbyManagerController;
@@ -85,7 +85,7 @@ class ITLobbyManagerControllerTest {
   }
 
   @Test
-  void testCreateGame() throws Exception {
+  void testCreateLobby() throws Exception {
 
     String gameName = "testGame";
     int minPlayers = 2;
@@ -94,7 +94,7 @@ class ITLobbyManagerControllerTest {
     Map<String, Object> payload = Map.ofEntries(Map.entry("gameName", gameName),
         Map.entry("minPlayers", minPlayers));
 
-    Mockito.when(gameService.createLobby(gameName, minPlayers)).thenReturn(gameId);
+    Mockito.when(lobbyManagerService.createLobby(gameName, minPlayers)).thenReturn(gameId);
 
     StompSession session = stompClient
         .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
@@ -106,20 +106,20 @@ class ITLobbyManagerControllerTest {
     session.send("/app/lobby", new ObjectMapper().writeValueAsBytes(payload));
 
     await().atMost(1, SECONDS).untilAsserted(() -> {
-      Mockito.verify(gameService).createLobby(gameName, minPlayers);
+      Mockito.verify(lobbyManagerService).createLobby(gameName, minPlayers);
       assertThat(blockingQueue.poll()).isEqualTo(gameId);
     });
   }
 
   @Test
-  void testBrowseGames() throws Exception {
+  void testBrowseLobbies() throws Exception {
     List<Map<String, Object>> gameList = Arrays.asList(Map.ofEntries(
         Map.entry("gameName", "testGame1"),
         Map.entry("currentPlayers", Collections.singleton("testPlayer1"))), Map.ofEntries(
         Map.entry("gameName", "testGame2"),
         Map.entry("currentPlayers", Arrays.asList("testPlayer2", "testPlayer3"))));
 
-    Mockito.when(gameService.browseLobbies()).thenReturn(gameList);
+    Mockito.when(lobbyManagerService.browseLobbies()).thenReturn(gameList);
 
     StompSession session = stompClient
         .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
@@ -131,7 +131,7 @@ class ITLobbyManagerControllerTest {
     session.send("/app/browse-lobbies", new ObjectMapper().writeValueAsBytes(""));
 
     await().atMost(1, SECONDS).untilAsserted(() -> {
-          Mockito.verify(gameService).browseLobbies();
+          Mockito.verify(lobbyManagerService).browseLobbies();
           assertThat(Objects.requireNonNull(blockingQueue.poll()).getBytes()).isEqualTo(
               new ObjectMapper().writeValueAsBytes(gameList));
         }
@@ -139,7 +139,7 @@ class ITLobbyManagerControllerTest {
   }
 
   @Test
-  void testJoinGame() throws Exception {
+  void testJoinLobby() throws Exception {
     String gameId = "123";
 
     StompSession session = stompClient
@@ -148,13 +148,34 @@ class ITLobbyManagerControllerTest {
             })
         .get(1, SECONDS);
 
-    Mockito.doNothing().when(gameService).joinLobby(Mockito.eq(gameId), Mockito.anyString());
-
-    session.subscribe("/topic/join-lobby/123", new DefaultStompFrameHandler());
-
-    session.send("/app/join-lobby/123", new ObjectMapper().writeValueAsBytes(""));
-
-    Mockito.verify(gameService, Mockito.timeout(1000))
+    Mockito.doNothing().when(lobbyManagerService)
         .joinLobby(Mockito.eq(gameId), Mockito.anyString());
+
+    session.subscribe("/topic/lobby/" + gameId, new DefaultStompFrameHandler());
+
+    session.send("/app/join-lobby/" + gameId, new ObjectMapper().writeValueAsBytes(""));
+
+    Mockito.verify(lobbyManagerService, Mockito.timeout(1000))
+        .joinLobby(Mockito.eq(gameId), Mockito.anyString());
+  }
+
+  @Test
+  void testLeaveLobby() throws Exception {
+    String gameId = "123";
+
+    StompSession session = stompClient
+        .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
+            new StompSessionHandlerAdapter() {
+            })
+        .get(1, SECONDS);
+
+    Mockito.doNothing().when(lobbyManagerService).leaveLobby(Mockito.anyString());
+
+    session.subscribe("/topic/lobby/" + gameId, new DefaultStompFrameHandler());
+
+    session.send("/app/leave-lobby/" + gameId, new ObjectMapper().writeValueAsBytes(""));
+
+    Mockito.verify(lobbyManagerService, Mockito.timeout(1000))
+        .leaveLobby(Mockito.anyString());
   }
 }

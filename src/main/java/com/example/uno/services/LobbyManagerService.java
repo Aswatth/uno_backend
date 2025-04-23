@@ -94,7 +94,7 @@ public class LobbyManagerService implements ILobbyManagerService {
         lobby.isHost(playerSessionId), headerAccessor.getMessageHeaders());
 
     // Notify party members
-    simpMessagingTemplate.convertAndSend("/topic/join-lobby/" + gameId,
+    simpMessagingTemplate.convertAndSend("/topic/lobby/" + gameId,
         lobbyList.get(gameId));
 
     // Broadcast updated info to other players browsing games.
@@ -134,7 +134,7 @@ public class LobbyManagerService implements ILobbyManagerService {
         lobbyList.put(gameId, lobby.toMap());
 
         // Notify party members
-        simpMessagingTemplate.convertAndSend("/topic/join-lobby/" + gameId,
+        simpMessagingTemplate.convertAndSend("/topic/lobby/" + gameId,
             lobbyList.get(gameId));
       }
 

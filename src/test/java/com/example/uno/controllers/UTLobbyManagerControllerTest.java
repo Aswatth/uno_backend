@@ -24,7 +24,7 @@ class UTLobbyManagerControllerTest {
   LobbyManagerController lobbyManagerController;
 
   @Test
-  void testCreateGame() {
+  void testCreateLobby() {
     String gameName = "testGameName";
     int minPlayers = 2;
     String gameId = "123";
@@ -40,7 +40,7 @@ class UTLobbyManagerControllerTest {
   }
 
   @Test
-  void testJoinGame() {
+  void testJoinLobby() {
     String gameId = "123";
     String playerSessionId = "p123";
 
@@ -52,7 +52,18 @@ class UTLobbyManagerControllerTest {
   }
 
   @Test
-  void testBrowseGames() {
+  void testLeaveLobby() {
+    String playerSessionId = "p123";
+
+    Mockito.doNothing().when(gameService).leaveLobby(playerSessionId);
+
+    lobbyManagerController.leaveLobby(playerSessionId);
+
+    Mockito.verify(gameService).leaveLobby(playerSessionId);
+  }
+
+  @Test
+  void testBrowseLobbies() {
     List<Map<String, Object>> gameList = Arrays.asList(Map.ofEntries(
         Map.entry("gameName", "testGame1"),
         Map.entry("currentPlayers", Collections.singletonList("testPlayer1"))

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Controller;
 public class LobbyManagerController {
 
   @Autowired
-  ILobbyManagerService gameService;
+  ILobbyManagerService lobbyManagerService;
 
   @MessageMapping("/lobby")
   @SendToUser("/queue/lobby")
@@ -26,19 +26,24 @@ public class LobbyManagerController {
     String gameName = (String) request.get("gameName");
     int minPlayers = (int) request.get("minPlayers");
 
-    return gameService.createLobby(gameName, minPlayers);
+    return lobbyManagerService.createLobby(gameName, minPlayers);
   }
 
   @MessageMapping("/browse-lobbies")
   @SendToUser("/queue/browse-lobbies")
   public List<Map<String, Object>> browseLobbies() {
-    return gameService.browseLobbies();
+    return lobbyManagerService.browseLobbies();
   }
 
   @MessageMapping("/join-lobby/{gameId}")
-  @SendTo("/topic/join-lobby/{gameId}")
+  @SendTo("/topic/lobby/{gameId}")
   public void joinLobby(@Header("simpSessionId") String sessionId,
       @DestinationVariable String gameId) {
-    gameService.joinLobby(gameId, sessionId);
+    lobbyManagerService.joinLobby(gameId, sessionId);
+  }
+  
+  @MessageMapping("/leave-lobby/{gameId}")
+  public void leaveLobby(@Header("simpSessionId") String sessionId) {
+    lobbyManagerService.leaveLobby(sessionId);
   }
 }

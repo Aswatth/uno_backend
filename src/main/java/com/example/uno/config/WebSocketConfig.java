@@ -22,6 +22,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry.addEndpoint("/uno").addInterceptors(new WebSocketIpInterceptor())
-        .setAllowedOrigins("http://localhost:3000");
+        .setAllowedOrigins("*");
   }
 }

@@ -66,6 +66,22 @@ public class LobbyManagerService implements ILobbyManagerService {
     return gameId;
   }
 
+  @Override
+  public void editMinPlayers(String gameId, int minPlayers) {
+    Lobby lobby = lobbyRepo.get(gameId);
+
+    lobby.setMinPlayers(minPlayers);
+
+    this.lobbyList.put(gameId, lobby.toMap());
+
+    lobbyRepo.add(gameId, lobby);
+
+    simpMessagingTemplate.convertAndSend("/topic/lobby/" + gameId,
+        lobbyList.get(gameId));
+
+    broadcast();
+  }
+
 
   @Override
   public List<Map<String, Object>> browseLobbies() {

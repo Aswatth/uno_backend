@@ -10,6 +10,8 @@ public interface ILobbyManagerService {
 
   String createLobby(String gameName, int minPlayers);
 
+  void editMinPlayers(String gameId, int minPlayers);
+
   List<Map<String, Object>> browseLobbies();
 
   void joinLobby(String gameId, String playerSessionId);

@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class UTLobbyManagerControllerTest {
 
   @Mock
-  LobbyManagerService gameService;
+  LobbyManagerService lobbyManagerService;
 
   @InjectMocks
   LobbyManagerController lobbyManagerController;
@@ -33,10 +33,22 @@ class UTLobbyManagerControllerTest {
         Map.entry("minPlayers", minPlayers)
     );
 
-    Mockito.when(gameService.createLobby(gameName, minPlayers)).thenReturn(gameId);
+    Mockito.when(lobbyManagerService.createLobby(gameName, minPlayers)).thenReturn(gameId);
 
     assertThat(lobbyManagerController.createLobby(request)).isEqualTo(gameId);
 
+  }
+
+  @Test
+  void testEditMinPlayers() {
+    String gameId = "123";
+    int minPlayers = 3;
+
+    Mockito.doNothing().when(lobbyManagerService).editMinPlayers(gameId, minPlayers);
+
+    lobbyManagerController.editMinPlayers(gameId, minPlayers);
+
+    Mockito.verify(lobbyManagerService).editMinPlayers(gameId, minPlayers);
   }
 
   @Test
@@ -44,22 +56,22 @@ class UTLobbyManagerControllerTest {
     String gameId = "123";
     String playerSessionId = "p123";
 
-    Mockito.doNothing().when(gameService).joinLobby(gameId, playerSessionId);
+    Mockito.doNothing().when(lobbyManagerService).joinLobby(gameId, playerSessionId);
 
     lobbyManagerController.joinLobby(playerSessionId, gameId);
 
-    Mockito.verify(gameService).joinLobby(gameId, playerSessionId);
+    Mockito.verify(lobbyManagerService).joinLobby(gameId, playerSessionId);
   }
 
   @Test
   void testLeaveLobby() {
     String playerSessionId = "p123";
 
-    Mockito.doNothing().when(gameService).leaveLobby(playerSessionId);
+    Mockito.doNothing().when(lobbyManagerService).leaveLobby(playerSessionId);
 
     lobbyManagerController.leaveLobby(playerSessionId);
 
-    Mockito.verify(gameService).leaveLobby(playerSessionId);
+    Mockito.verify(lobbyManagerService).leaveLobby(playerSessionId);
   }
 
   @Test
@@ -72,10 +84,10 @@ class UTLobbyManagerControllerTest {
         Map.entry("currentPlayers", Arrays.asList("testPlayer2", "testPlayer3"))
     ));
 
-    Mockito.when(gameService.browseLobbies()).thenReturn(gameList);
+    Mockito.when(lobbyManagerService.browseLobbies()).thenReturn(gameList);
 
     assertThat(lobbyManagerController.browseLobbies()).isEqualTo(gameList);
 
-    Mockito.verify(gameService).browseLobbies();
+    Mockito.verify(lobbyManagerService).browseLobbies();
   }
 }

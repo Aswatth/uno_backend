@@ -3,6 +3,7 @@ package com.example.uno.services;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.uno.models.ConnectionData;
+import com.example.uno.models.Lobby;
 import com.example.uno.models.Player;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,6 +23,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import repos.ChatRepo;
+import repos.LobbyRepo;
 import repos.PlayerRepo;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +53,78 @@ class LobbyManagerServiceTest {
 
     String gameId = lobbyManagerService.createLobby(gameName, minPlayers);
     assertThat(gameId).isNotEmpty();
+  }
+
+  @Test
+  void testEditMinPlayers() {
+    String gameName = "testGame";
+    int minPlayers = 2;
+    Player mockPlayer = new Player("p123", "testPlayer", new ConnectionData("0.0.0.0", 1));
+    String gameId = lobbyManagerService.createLobby(gameName, minPlayers);
+    System.out.println(gameId);
+
+    Mockito.when(playerRepo.get("p123")).thenReturn(mockPlayer);
+    Mockito.when(playerRepo.getAllKeys()).thenReturn(List.of(mockPlayer.getSessionId()));
+
+    lobbyManagerService.joinLobby(gameId, mockPlayer.getSessionId());
+
+    // Validating for join lobby
+    SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.create(
+        SimpMessageType.MESSAGE);
+    headerAccessor.setSessionId(mockPlayer.getSessionId());
+
+    Mockito.verify(simpMessagingTemplate)
+        .convertAndSendToUser(mockPlayer.getSessionId(), "/queue/host", true,
+            headerAccessor.
+                getMessageHeaders());
+
+    Mockito.verify(simpMessagingTemplate)
+        .convertAndSend("/topic/lobby/" + gameId,
+            Map.ofEntries(
+                Map.entry("gameId", gameId),
+                Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
+            ));
+
+    Mockito.verify(simpMessagingTemplate)
+        .convertAndSendToUser(mockPlayer.getSessionId(), "/queue/browse-lobbies",
+            Collections.singletonList(Map.ofEntries(
+                Map.entry("gameId", gameId),
+                Map.entry("gameName", gameName),
+                Map.entry("minPlayers", minPlayers),
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
+            )),
+            headerAccessor.getMessageHeaders());
+
+    lobbyManagerService.editMinPlayers(gameId, 3);
+
+    Mockito.verify(simpMessagingTemplate)
+        .convertAndSend("/topic/lobby/" + gameId,
+            Map.ofEntries(
+                Map.entry("gameId", gameId),
+                Map.entry("gameName", gameName),
+                Map.entry("minPlayers", 3),
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
+            ));
+
+    Mockito.verify(simpMessagingTemplate)
+        .convertAndSendToUser(mockPlayer.getSessionId(), "/queue/browse-lobbies",
+            Collections.singletonList(Map.ofEntries(
+                Map.entry("gameId", gameId),
+                Map.entry("gameName", gameName),
+                Map.entry("minPlayers", 3),
+                Map.entry("currentPlayers", Collections.singletonList(
+                    Map.ofEntries(Map.entry("playerName", mockPlayer.getName()),
+                        Map.entry("status", true))))
+            )),
+            headerAccessor.getMessageHeaders());
   }
 
   @Test

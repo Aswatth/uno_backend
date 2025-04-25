@@ -29,6 +29,11 @@ public class LobbyManagerController {
     return lobbyManagerService.createLobby(gameName, minPlayers);
   }
 
+  @MessageMapping("/lobby/{gameId}/edit-min-players")
+  public void editMinPlayers(@DestinationVariable String gameId, int minPlayers) {
+    lobbyManagerService.editMinPlayers(gameId, minPlayers);
+  }
+
   @MessageMapping("/browse-lobbies")
   @SendToUser("/queue/browse-lobbies")
   public List<Map<String, Object>> browseLobbies() {
@@ -41,7 +46,7 @@ public class LobbyManagerController {
       @DestinationVariable String gameId) {
     lobbyManagerService.joinLobby(gameId, sessionId);
   }
-  
+
   @MessageMapping("/leave-lobby/{gameId}")
   public void leaveLobby(@Header("simpSessionId") String sessionId) {
     lobbyManagerService.leaveLobby(sessionId);

@@ -112,6 +112,27 @@ class ITLobbyManagerControllerTest {
   }
 
   @Test
+  void testEditMinPlayers() throws Exception {
+    String gameId = "g123";
+    int minPlayers = 3;
+
+    StompSession session = stompClient
+        .connectAsync(WEBSOCKET_URI.replace("$PORT", Integer.toString(port)),
+            new StompSessionHandlerAdapter() {
+            })
+        .get(1, SECONDS);
+    session.subscribe("/topic/lobby/" + gameId, new DefaultStompFrameHandler());
+    session.subscribe("/user/queue/lobby", new DefaultStompFrameHandler());
+
+    session.send("/app/lobby/" + gameId + "/edit-min-players",
+        new ObjectMapper().writeValueAsBytes(minPlayers));
+
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+      Mockito.verify(lobbyManagerService).editMinPlayers(gameId, minPlayers);
+    });
+  }
+
+  @Test
   void testBrowseLobbies() throws Exception {
     List<Map<String, Object>> gameList = Arrays.asList(Map.ofEntries(
         Map.entry("gameName", "testGame1"),
@@ -155,8 +176,10 @@ class ITLobbyManagerControllerTest {
 
     session.send("/app/join-lobby/" + gameId, new ObjectMapper().writeValueAsBytes(""));
 
-    Mockito.verify(lobbyManagerService, Mockito.timeout(1000))
-        .joinLobby(Mockito.eq(gameId), Mockito.anyString());
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+      Mockito.verify(lobbyManagerService)
+          .joinLobby(Mockito.eq(gameId), Mockito.anyString());
+    });
   }
 
   @Test
@@ -175,7 +198,9 @@ class ITLobbyManagerControllerTest {
 
     session.send("/app/leave-lobby/" + gameId, new ObjectMapper().writeValueAsBytes(""));
 
-    Mockito.verify(lobbyManagerService, Mockito.timeout(1000))
-        .leaveLobby(Mockito.anyString());
+    await().atMost(1, SECONDS).untilAsserted(() -> {
+      Mockito.verify(lobbyManagerService)
+          .leaveLobby(Mockito.anyString());
+    });
   }
 }
